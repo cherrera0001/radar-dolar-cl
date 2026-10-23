@@ -11,14 +11,13 @@ from .fuentes import fred, mindicador
 from .fuentes.base import FuenteError
 
 ANIO_INICIO = 2012  # historia suficiente para ventanas de 2 años + backtest de ~12 años
-MAX_ATRASO_DIAS = 7  # el dólar observado más reciente no debería tener más de esto
 
 
 @dataclass
 class Resultado:
     cambios: dict[str, int] = field(default_factory=dict)
     errores: list[str] = field(default_factory=list)
-    avisos: list[str] = field(default_factory=list)
+    fallidas: set[str] = field(default_factory=set)  # series cuya descarga falló (para radar/salud.py)
 
 
 def actualizar(hoy: date | None = None, base: Path = almacen.DIR_SERIES) -> Resultado:
@@ -35,6 +34,7 @@ def actualizar(hoy: date | None = None, base: Path = almacen.DIR_SERIES) -> Resu
                 puntos += mindicador.descargar(serie, anio)
         except FuenteError as e:
             r.errores.append(str(e))
+            r.fallidas.add(serie)
             continue
         r.cambios[serie] = almacen.guardar(puntos, base).get(serie, 0)
 
@@ -43,14 +43,7 @@ def actualizar(hoy: date | None = None, base: Path = almacen.DIR_SERIES) -> Resu
             puntos = fred.descargar(serie, desde=date(ANIO_INICIO, 1, 1))
         except FuenteError as e:
             r.errores.append(str(e))
+            r.fallidas.add(serie)
             continue
         r.cambios[serie] = almacen.guardar(puntos, base).get(serie, 0)
-
-    usd = almacen.leer("usdclp", base)
-    if usd.empty:
-        r.errores.append("usdclp: sin datos")
-    else:
-        atraso = (hoy - usd.index.max().date()).days
-        if atraso > MAX_ATRASO_DIAS:
-            r.avisos.append(f"usdclp: último dato del {usd.index.max().date()} ({atraso} días de atraso)")
     return r

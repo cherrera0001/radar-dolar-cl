@@ -7,7 +7,7 @@ import sys
 from datetime import date
 from pathlib import Path
 
-from . import almacen, investigacion, reporte, telegram
+from . import almacen, investigacion, reporte, salud, telegram
 from .actualizar import actualizar
 from .backtest import backtest
 from .senales import DEFINICIONES, SERIES, calcular
@@ -31,23 +31,34 @@ def _salida(texto: str, enviar: bool, silencioso: bool = False) -> None:
 
 
 def cmd_actualizar(_: argparse.Namespace) -> int:
-    r = actualizar()
+    hoy = date.today()
+    r = actualizar(hoy)
     for serie, n in sorted(r.cambios.items()):
         print(f"{serie}: {n} fechas nuevas o revisadas")
-    for a in r.avisos:
-        print(f"AVISO {a}")
     for e in r.errores:
         print(f"ERROR {e}")
     est = reporte.leer_estado()
-    est["ultima_actualizacion"] = {"fecha": date.today().isoformat(), "errores": r.errores, "avisos": r.avisos}
+    ultimas = {s: v.index.max().date() for s in SERIES if not (v := almacen.leer(s)).empty}
+    est["salud"], nuevos = salud.evaluar(est.get("salud", {}), r.fallidas, ultimas, hoy)
+    est["avisos_pendientes"] = [*est.get("avisos_pendientes", []), *nuevos]  # los envía `radar alerta`
+    est["ultima_actualizacion"] = {"fecha": hoy.isoformat(), "errores": r.errores}
     reporte.guardar_estado(est)
-    # Falla el job solo si no se pudo actualizar nada: un error parcial se informa en el resumen.
+    for a in nuevos:
+        print(f"AVISO {a}")
+    # Falla el job solo si no se pudo actualizar nada: un error parcial se informa por la salud de fuentes.
     return 1 if r.errores and not r.cambios else 0
 
 
 def _avisos() -> list[str]:
-    u = reporte.leer_estado().get("ultima_actualizacion", {})
-    return [*u.get("errores", []), *u.get("avisos", [])]
+    """Problemas vigentes para el resumen semanal."""
+    est = reporte.leer_estado()
+    out = list(est.get("ultima_actualizacion", {}).get("errores", []))
+    for serie, s in sorted(est.get("salud", {}).items()):
+        if s.get("aviso_atraso"):
+            out.append(f"{serie}: datos atrasados")
+        if s.get("aviso_falla"):
+            out.append(f"{serie}: fuente fallando hace {s.get('fallas')} días hábiles")
+    return out
 
 
 def cmd_senales(_: argparse.Namespace) -> int:
@@ -92,22 +103,22 @@ def cmd_resumen(args: argparse.Namespace) -> int:
 
 
 def cmd_alerta(args: argparse.Namespace) -> int:
-    """Avisa solo si el semáforo cambió respecto de la última vez (o si fallan fuentes por primera vez)."""
+    """Avisa solo si el semáforo cambió, o si la salud de fuentes cambió (avisos pendientes)."""
     _, _, a = _cargar()
     est = reporte.leer_estado()
     anterior = est.get("estado")
-    errores = est.get("ultima_actualizacion", {}).get("errores", [])
     mensajes = []
     if a["estado"] != anterior:
         mensajes.append(reporte.alerta(a, anterior))
-    if errores and errores != est.get("errores_avisados"):
-        mensajes.append("⚠️ Radar Dólar: fuentes con error\n" + "\n".join(errores))
+    if est.get("avisos_pendientes"):
+        mensajes.append("⚠️ Radar Dólar · salud de fuentes\n" + "\n".join(est["avisos_pendientes"]))
     if not mensajes:
         print(f"Sin cambios: {a['estado']} ({a['fecha']}).")
     for m in mensajes:
         _salida(m, args.enviar)
     # Se guarda DESPUÉS de enviar: si Telegram falla, el próximo run vuelve a avisar.
-    est.update({"estado": a["estado"], "fecha": a["fecha"], "compuesto": a["compuesto"], "errores_avisados": errores})
+    est.update({"estado": a["estado"], "fecha": a["fecha"], "compuesto": a["compuesto"], "avisos_pendientes": []})
+    est.pop("errores_avisados", None)
     reporte.guardar_estado(est)
     return 0
 

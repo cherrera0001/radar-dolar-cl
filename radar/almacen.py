@@ -15,10 +15,15 @@ from .fuentes.base import Punto
 
 DIR_SERIES = Path("data/series")
 
-# Antigüedad máxima (días calendario) de un valor para usarlo en una fecha posterior.
+# Antigüedad máxima (días calendario) de un valor: se usa para alinear series y para
+# avisar datos atrasados (radar/salud.py). Único lugar donde se define.
 # El DXY amplio de la Fed (H.10) sale una vez por semana con ~10 días de rezago.
-TOLERANCIA_DIAS: dict[str, int] = {"dxy": 14}
-TOLERANCIA_POR_DEFECTO = 7
+ANTIGUEDAD_MAX_DIAS: dict[str, int] = {"dxy": 14}
+ANTIGUEDAD_POR_DEFECTO = 7
+
+
+def antiguedad_max(serie: str) -> int:
+    return ANTIGUEDAD_MAX_DIAS.get(serie, ANTIGUEDAD_POR_DEFECTO)
 
 
 def ruta(serie: str, base: Path = DIR_SERIES) -> Path:
@@ -67,14 +72,13 @@ def tabla(series: Iterable[str], base: Path = DIR_SERIES) -> pd.DataFrame:
     """Une las series en días hábiles del dólar observado.
 
     Las demás series se alinean con el último valor conocido dentro de su
-    tolerancia (TOLERANCIA_DIAS), para no inventar datos donde la fuente no publicó.
+    antigüedad máxima, para no inventar datos donde la fuente no publicó.
     """
     datos = {s: leer(s, base) for s in series}
     if "usdclp" not in datos or datos["usdclp"].empty:
         return pd.DataFrame()
     indice = datos["usdclp"].index
     return pd.DataFrame({
-        s: v.reindex(indice, method="ffill",
-                     tolerance=pd.Timedelta(days=TOLERANCIA_DIAS.get(s, TOLERANCIA_POR_DEFECTO)))
+        s: v.reindex(indice, method="ffill", tolerance=pd.Timedelta(days=antiguedad_max(s)))
         for s, v in datos.items()
     })
