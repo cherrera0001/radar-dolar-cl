@@ -107,11 +107,14 @@ class Resultado:
 
 
 def preparar(precios: pd.Series, senales: pd.DataFrame) -> pd.DataFrame:
-    """Días con precio, marcando inicio/fin de mes. Solo meses completos con señal desde el día 1."""
+    """Días con precio, marcando inicio/fin de mes. Solo meses completos con señal desde el día 1.
+
+    Las señales se desplazan 1 día (#19): la decisión del día d usa lo conocido hasta d-1.
+    """
     df = pd.DataFrame({
         "precio": precios,
-        "compuesto": senales["compuesto"],
-        "desvio": senales.get("desvio_pct", pd.Series(float("nan"), index=senales.index)),
+        "compuesto": senales["compuesto"].shift(1),
+        "desvio": senales.get("desvio_pct", pd.Series(float("nan"), index=senales.index)).shift(1),
     }).dropna(subset=["precio"])
     mes = df.index.to_period("M")
     df["primer"] = ~mes.duplicated(keep="first")

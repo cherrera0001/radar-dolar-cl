@@ -26,6 +26,23 @@ def antiguedad_max(serie: str) -> int:
     return ANTIGUEDAD_MAX_DIAS.get(serie, ANTIGUEDAD_POR_DEFECTO)
 
 
+# Días hábiles entre la fecha con que la fuente guarda el dato y el día de mercado en que se formó
+# (issue #19, medido en docs/HISTORICO.md §0):
+# - usdclp: el BCCh publica el observado el día hábil anterior al día en que rige.
+# - cobre_lb: mindicador lo fecha 2 días hábiles después del mercado (corr con DXY_{t-2}).
+# Se usa el calendario hábil genérico (lun-vie): los feriados chilenos introducen error de ±1 día.
+DESFASE_MERCADO: dict[str, int] = {"usdclp": 1, "cobre_lb": 2}
+
+
+def a_fecha_mercado(serie: str, s: pd.Series) -> pd.Series:
+    n = DESFASE_MERCADO.get(serie, 0)
+    if not n or s.empty:
+        return s
+    s = s.copy()
+    s.index = s.index - pd.offsets.BDay(n)
+    return s[~s.index.duplicated(keep="last")]
+
+
 def ruta(serie: str, base: Path = DIR_SERIES) -> Path:
     return base / f"{serie}.csv"
 
@@ -69,12 +86,14 @@ def guardar(puntos: Iterable[Punto], base: Path = DIR_SERIES) -> dict[str, int]:
 
 
 def tabla(series: Iterable[str], base: Path = DIR_SERIES) -> pd.DataFrame:
-    """Une las series en días hábiles del dólar observado.
+    """Une las series por DÍA DE MERCADO, en los días hábiles del dólar observado.
 
-    Las demás series se alinean con el último valor conocido dentro de su
-    antigüedad máxima, para no inventar datos donde la fuente no publicó.
+    Cada serie se reindexa a su fecha de mercado (DESFASE_MERCADO) y luego se alinea
+    con el último valor conocido dentro de su antigüedad máxima, para no inventar
+    datos donde la fuente no publicó. Una fila t contiene lo que pasó en el mercado
+    el día t: quien decide en t solo debería usar filas <= t-1 (ver backtest).
     """
-    datos = {s: leer(s, base) for s in series}
+    datos = {s: a_fecha_mercado(s, leer(s, base)) for s in series}
     if "usdclp" not in datos or datos["usdclp"].empty:
         return pd.DataFrame()
     indice = datos["usdclp"].index

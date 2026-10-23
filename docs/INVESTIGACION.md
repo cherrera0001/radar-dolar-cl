@@ -22,6 +22,17 @@ entera, para que todas las estrategias gasten lo mismo.
 | Diseño 2012-11 a 2019-12 (86 meses) | $613,27 | −0,096% | **+0,276%** |
 | Prueba 2020-01 a 2026-09 (81 meses) | $856,65 | −0,068% | **−0,207%** |
 
+**Re-ejecución con fechas de mercado alineadas (#19, 2026-10-23).** El histórico mostró que
+`usdclp` estaba fechado 1 día hábil después del mercado y `cobre_lb` 2 días; además la decisión
+del día *d* ahora usa solo la señal de *d−1*. Resultado:
+
+| Período | Radar v0.1 | Acumulación elegida (misma combinación) |
+|---|---|---|
+| Diseño 2012-11 a 2019-12 | −0,112% | +0,193% |
+| Prueba 2020-01 a 2026-09 | −0,129% | **−0,041%** |
+
+La conclusión no cambia: ninguna regla le gana a DCA fuera de muestra.
+
 **Conclusión: rechazada.** La mejor combinación del diseño pierde en la prueba: es
 sobreajuste. El valor justo cobre + DXY describe bien cuándo el dólar está caro, pero esa
 "caridad" no se corrige en uno o dos meses de forma aprovechable: entre 2020 y 2026 el dólar

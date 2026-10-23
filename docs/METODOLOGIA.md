@@ -2,7 +2,9 @@
 
 ## Principios
 
-1. **Causalidad.** Cada valor de una señal en la fecha *t* usa solo datos hasta *t*. El modelo de
+1. **Causalidad.** Las series se indexan por **día de mercado** (`usdclp` 1 día hábil antes de su
+   fecha de vigencia, `cobre_lb` 2 días antes; #19). Cada valor de una señal en la fecha *t* usa
+   solo datos hasta *t*, y la decisión de compra del día *d* usa la señal de *d−1*. El modelo de
    valor justo se ajusta con `[t-504, t-1]` y predice *t* (fuera de muestra). Hay un test que altera
    el futuro y verifica que el pasado no cambie.
 2. **Sin sobreajuste.** Los pesos y umbrales son hipótesis a priori. No se eligen mirando el

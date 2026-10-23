@@ -17,8 +17,12 @@ ganado a DCA fuera de muestra:
 
 | Estrategia | Historia 2012–2026 | Fuera de muestra 2020–2026 |
 |---|---|---|
-| Timing dentro del mes (v0.1) | −0,09% | −0,07% |
-| Acumular pesos si el dólar está caro (#10) | — | −0,21% (en diseño parecía +0,28%: sobreajuste) |
+| Timing dentro del mes (v0.1) | −0,12% | −0,13% |
+| Acumular pesos si el dólar está caro (#10) | — | −0,04% (en diseño parecía +0,19%: sobreajuste) |
+
+Cifras con fechas de mercado alineadas y decisión con la señal del día anterior (#19).
+Lo que sí ahorra con certeza es el **canal de compra**: ~2,5% en la pizarra de un banco vs ~0,5%
+en canales de bajo spread ([estado del arte](docs/ESTADO_DEL_ARTE.md)).
 
 Detalle en [docs/INVESTIGACION.md](docs/INVESTIGACION.md) y [docs/METODOLOGIA.md](docs/METODOLOGIA.md).
 Nuevas señales (p. ej. flujos del Banco Central) se evalúan con `radar investigar` antes de cambiar

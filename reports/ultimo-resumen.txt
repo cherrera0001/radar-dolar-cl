@@ -1,19 +1,19 @@
-💵 Radar Dólar Chile · datos al 2026-10-26
+💵 Radar Dólar Chile · datos al 2026-10-23
 Dólar observado: $990,35
 
 🔴 CARO · puntaje −0,58 (umbral ±0,25) · 4 de 6 señales de acuerdo
 El dólar está caro frente a lo que lo mueve (cobre, dólar global, tasas).
 
 Señales (+ barato / − caro):
- ▼ −1,00 Valor justo (cobre + dólar global): dólar +7,5% caro vs su valor justo de $921,60
+ ▼ −1,00 Valor justo (cobre + dólar global): dólar +7,4% caro vs su valor justo de $921,83
  ▼ −1,00 Posición en el último año: percentil 100 de los últimos 12 meses (0 = mínimo, 100 = máximo)
- ▼ −0,29 Tendencia del cobre (3 meses): cobre +4,4% en 3 meses
- ▲ +0,10 Tendencia del dólar global (3 meses): dólar global +0,5% en 3 meses
+ ▼ −0,27 Tendencia del cobre (3 meses): cobre +4,0% en 3 meses
+ ▲ +0,12 Tendencia del dólar global (3 meses): dólar global +0,6% en 3 meses
  ▲ +0,16 Diferencial de tasas Chile - EE.UU. (6 meses): TPM − Fed = 0,62 pts (−0,24 en 6 meses)
  ▼ −0,15 Aversión al riesgo (VIX): VIX sobre su media anual (0,3 desv.)
 
-📊 Historia 2012-11 a 2026-09 (167 meses): timing dentro del mes vs DCA −0,09%.
-🧪 Fuera de muestra (2020 en adelante) vs DCA: timing v0.1 −0,07% · acumular si caro −0,21%
+📊 Historia 2012-11 a 2026-09 (167 meses): timing dentro del mes vs DCA −0,12%.
+🧪 Fuera de muestra (2020 en adelante) vs DCA: timing v0.1 −0,13% · acumular si caro −0,04%
 
 Recomendación: compra tu cuota completa cada mes (DCA). El semáforo describe el precio; esperar o adelantar compras no le ha ganado a DCA fuera de muestra (docs/INVESTIGACION.md).
 Fuentes: mindicador.cl (dólar observado, cobre, TPM) y FRED (DXY, Fed, VIX). Herramienta personal; no es asesoría financiera.

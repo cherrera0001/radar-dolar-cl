@@ -9,6 +9,9 @@ Ambas estrategias gastan exactamente el mismo presupuesto mensual:
 Se compara cuántos dólares obtuvo cada una. Solo se usan meses completos y con
 señal disponible desde el inicio del mes. Si el radar no le gana a DCA, el
 reporte lo dice: esa es la prueba de que las señales aportan algo.
+
+Causalidad (#19): las filas están en fechas de mercado; quien compra el día d solo
+conoce la señal calculada con datos hasta d-1, por eso se usa compuesto desplazado 1 día.
 """
 
 from __future__ import annotations
@@ -39,7 +42,7 @@ class ResultadoBacktest:
 
 def backtest(precios: pd.Series, compuesto: pd.Series, presupuesto: float = 100_000.0,
              umbral: float = UMBRAL) -> ResultadoBacktest | None:
-    df = pd.DataFrame({"p": precios, "c": compuesto}).dropna(subset=["p"])
+    df = pd.DataFrame({"p": precios, "c": compuesto.shift(1)}).dropna(subset=["p"])
     if df.empty:
         return None
     ultimo_mes = df.index.max().to_period("M")
