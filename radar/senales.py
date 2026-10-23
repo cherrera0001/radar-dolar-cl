@@ -1,7 +1,7 @@
 """Señales para ahorro de largo plazo en dólares.
 
-Cada señal produce un puntaje en [-1, 1]:  +1 = buen momento para COMPRAR dólares,
--1 = conviene ESPERAR. Todas son causales: el valor de una fecha solo usa datos
+Cada señal produce un puntaje en [-1, 1]:  +1 = dólar BARATO frente a lo que lo mueve,
+-1 = dólar CARO. Todas son causales: el valor de una fecha solo usa datos
 hasta esa fecha (ventanas móviles y desplazamientos hacia atrás), así el backtest
 no ve el futuro.
 
@@ -17,7 +17,7 @@ import numpy as np
 import pandas as pd
 
 DIAS_ANIO = 252
-UMBRAL = 0.25  # |compuesto| >= UMBRAL -> COMPRAR / ESPERAR
+UMBRAL = 0.25  # |compuesto| >= UMBRAL -> BARATO / CARO
 MIN_SENALES = 3  # con menos señales disponibles no se emite compuesto
 
 SERIES = ["usdclp", "cobre_lb", "dxy", "tpm", "fed_funds", "vix"]
@@ -141,10 +141,12 @@ def calcular(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def estado(compuesto: float) -> str:
+    """Estado descriptivo del precio. No es una orden: ninguna regla de timing le ha ganado
+    a DCA fuera de muestra (docs/INVESTIGACION.md)."""
     if not np.isfinite(compuesto):
         return "SIN DATOS"
     if compuesto >= UMBRAL:
-        return "COMPRAR"
+        return "BARATO"
     if compuesto <= -UMBRAL:
-        return "ESPERAR"
-    return "NEUTRAL"
+        return "CARO"
+    return "NORMAL"

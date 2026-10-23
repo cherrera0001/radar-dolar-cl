@@ -68,4 +68,4 @@ def test_compuesto_acotado_y_estados():
     s = calcular(mercado())
     c = s["compuesto"].dropna()
     assert c.between(-1, 1).all()
-    assert estado(0.3) == "COMPRAR" and estado(-0.3) == "ESPERAR" and estado(0.0) == "NEUTRAL"
+    assert estado(0.3) == "BARATO" and estado(-0.3) == "CARO" and estado(0.0) == "NORMAL"

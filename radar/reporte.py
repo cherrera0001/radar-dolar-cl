@@ -13,14 +13,15 @@ from .senales import DEFINICIONES, UMBRAL, estado
 
 ARCHIVO_ESTADO = Path("data/estado.json")
 
-ICONO = {"COMPRAR": "🟢", "NEUTRAL": "🟡", "ESPERAR": "🔴", "SIN DATOS": "⚪"}
-CONSEJO = {
-    "COMPRAR": "Buen momento: compra ahora la mitad táctica de tu cuota del mes.",
-    "NEUTRAL": "Mantén la mitad táctica en pesos; si no aparece COMPRAR, cómprala el último día hábil del mes.",
-    "ESPERAR": "Dólar caro según las señales: mantén la mitad táctica en pesos hasta COMPRAR o fin de mes.",
-    "SIN DATOS": "Sin señal confiable hoy: sigue tu compra mensual fija.",
+ICONO = {"BARATO": "🟢", "NORMAL": "🟡", "CARO": "🔴", "SIN DATOS": "⚪"}
+CONTEXTO = {
+    "BARATO": "El dólar está barato frente a lo que lo mueve (cobre, dólar global, tasas).",
+    "NORMAL": "El dólar está en un rango normal frente a lo que lo mueve.",
+    "CARO": "El dólar está caro frente a lo que lo mueve (cobre, dólar global, tasas).",
+    "SIN DATOS": "Sin datos suficientes para describir el precio hoy.",
 }
-REGLA = "Regla: 50% de la cuota el primer día hábil del mes; 50% al primer COMPRAR o el último día hábil."
+REGLA = ("Recomendación: compra tu cuota completa cada mes (DCA). El semáforo describe el precio; "
+         "esperar o adelantar compras no le ha ganado a DCA fuera de muestra (docs/INVESTIGACION.md).")
 PIE = "Fuentes: mindicador.cl (dólar observado, cobre, TPM) y FRED (DXY, Fed, VIX). Herramienta personal; no es asesoría financiera."
 
 
@@ -81,7 +82,8 @@ def lineas_senales(fila: pd.Series) -> list[str]:
     return out
 
 
-def resumen(a: dict, bt: ResultadoBacktest | None, avisos: list[str]) -> str:
+def resumen(a: dict, bt: ResultadoBacktest | None, avisos: list[str], prueba: list[tuple[str, float]] | None = None) -> str:
+    """`prueba`: (estrategia, % vs DCA) medidos fuera de muestra con `radar investigar`."""
     fila = a["fila"]
     n, acuerdo = int(fila.get("n_senales", 0) or 0), int(fila.get("acuerdo", 0) or 0)
     partes = [
@@ -90,17 +92,17 @@ def resumen(a: dict, bt: ResultadoBacktest | None, avisos: list[str]) -> str:
         "",
         f"{ICONO[a['estado']]} {a['estado']} · puntaje {'+' if a['compuesto'] >= 0 else '−'}{num(abs(a['compuesto']))}"
         f" (umbral ±{num(UMBRAL)}) · {acuerdo} de {n} señales de acuerdo" if _ok(a["compuesto"]) else "⚪ SIN DATOS",
-        CONSEJO[a["estado"]],
+        CONTEXTO[a["estado"]],
         "",
-        "Señales (+ comprar / − esperar):",
+        "Señales (+ barato / − caro):",
         *lineas_senales(fila),
     ]
     if bt:
-        veredicto = "más" if bt.mejora_pct >= 0 else "menos"
-        partes += ["", f"📊 Backtest {bt.desde} a {bt.hasta} ({bt.meses} meses): el radar obtuvo "
-                       f"{num(abs(bt.mejora_pct), 2)}% {veredicto} dólares que comprar fijo cada mes "
-                       f"(mejor en {bt.meses_mejor}, peor en {bt.meses_peor} meses; "
-                       f"${num(bt.precio_radar)} vs ${num(bt.precio_dca)} por dólar)."]
+        partes += ["", f"📊 Historia {bt.desde} a {bt.hasta} ({bt.meses} meses): timing dentro del mes vs DCA "
+                       f"{'+' if bt.mejora_pct >= 0 else '−'}{num(abs(bt.mejora_pct), 2)}%."]
+    if prueba:
+        partes.append("🧪 Fuera de muestra (2020 en adelante) vs DCA: "
+                      + " · ".join(f"{nombre} {'+' if v >= 0 else '−'}{num(abs(v), 2)}%" for nombre, v in prueba))
     if avisos:
         partes += ["", "⚠️ " + "\n⚠️ ".join(avisos)]
     partes += ["", REGLA, PIE]
@@ -112,9 +114,11 @@ def alerta(a: dict, anterior: str | None) -> str:
         f"{ICONO[a['estado']]} Radar Dólar: {anterior or '—'} → {a['estado']}",
         f"Dólar observado ${num(a['precio'])} ({a['fecha']}) · puntaje "
         f"{'+' if a['compuesto'] >= 0 else '−'}{num(abs(a['compuesto']))}" if _ok(a["compuesto"]) else "",
-        CONSEJO[a["estado"]],
+        CONTEXTO[a["estado"]],
         "",
         *lineas_senales(a["fila"]),
+        "",
+        REGLA,
     ])
 
 

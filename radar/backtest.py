@@ -4,7 +4,7 @@ Ambas estrategias gastan exactamente el mismo presupuesto mensual:
 
 - DCA:   todo el presupuesto el primer día hábil del mes.
 - Radar: 50% el primer día hábil; el otro 50% el primer día del mes en que el
-         compuesto llega a COMPRAR, o el último día hábil si eso no ocurre.
+         compuesto llega a BARATO, o el último día hábil si eso no ocurre.
 
 Se compara cuántos dólares obtuvo cada una. Solo se usan meses completos y con
 señal disponible desde el inicio del mes. Si el radar no le gana a DCA, el

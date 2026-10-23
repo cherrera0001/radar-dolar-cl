@@ -51,7 +51,7 @@ class DCA(Estrategia):
 
 
 class RadarV01(Estrategia):
-    """50% el día 1; 50% al primer COMPRAR del mes o el último día hábil."""
+    """50% el día 1; 50% al primer BARATO del mes o el último día hábil."""
     nombre = "Radar v0.1 (media cuota táctica)"
 
     def reiniciar(self):

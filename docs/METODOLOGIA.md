@@ -11,7 +11,7 @@
 4. **Datos honestos.** Una fuente que responde algo fuera de contrato o fuera de rango falla
    ruidosamente; las series se alinean con una antigüedad máxima (7 días; 14 para el DXY semanal).
 
-## Señales (puntaje en [-1, 1]; + = comprar dólares, − = esperar)
+## Señales (puntaje en [-1, 1]; + = dólar barato, − = dólar caro)
 
 | Señal | Peso | Cálculo | Lógica |
 |---|---|---|---|
@@ -22,13 +22,14 @@
 | Diferencial de tasas | 0,10 | `−Δ126d(TPM − Fed) / 1,5 pts` | Diferencial que se estrecha debilita al peso → comprar |
 | Aversión al riesgo | 0,10 | `−z(VIX, 252d) / 2` | En pánicos el dólar se dispara y suele devolverse → esperar |
 
-**Compuesto:** promedio ponderado de las señales disponibles (con al menos 3). COMPRAR si ≥ 0,25,
-ESPERAR si ≤ −0,25, NEUTRAL entre ambos. "Acuerdo" = cuántas señales tienen el mismo signo.
+**Compuesto:** promedio ponderado de las señales disponibles (con al menos 3). BARATO si ≥ 0,25,
+CARO si ≤ −0,25, NORMAL entre ambos. "Acuerdo" = cuántas señales tienen el mismo signo. Los estados
+son descriptivos: la recomendación es DCA mientras ninguna regla gane fuera de muestra (#12).
 
 ## Backtest (v0.1)
 
 Ambas estrategias gastan el mismo presupuesto mensual. DCA compra todo el primer día hábil; el radar
-compra 50% ese día y 50% al primer COMPRAR del mes (o el último día hábil). Se excluyen el mes en curso
+compra 50% ese día y 50% al primer BARATO del mes (o el último día hábil). Se excluyen el mes en curso
 y los meses sin señal desde su primer día (calentamiento de las ventanas).
 
 Resultado 2012-11 a 2026-09 (167 meses):
@@ -51,9 +52,8 @@ media cuota no captura valor y las señales de tendencia llegan tarde. El radar 
 
 1. **Fase 2 — Banco Central (API BDE):** exportaciones de cobre (volumen y valor), flujos
    cambiarios y series oficiales; contraste del dólar observado mindicador vs BCCh.
-2. **Investigación con validación walk-forward:** probar reglas de asignación entre meses
-   (acumular pesos hasta N meses cuando el dólar está caro, desplegar cuando vuelve a valor justo),
-   diseñadas con 2012–2019 y evaluadas solo en 2020–2026. Solo pasa a producción lo que gane fuera
-   de muestra.
+2. **Investigación con validación walk-forward** (#9, hecho): `radar investigar`. Primera
+   hipótesis, acumular pesos cuando el dólar está caro (#10), **rechazada** fuera de muestra;
+   ver [INVESTIGACION.md](INVESTIGACION.md).
 3. **Comandos en Telegram** (`/dolar`, `/senales`): webhook en un Cloudflare Worker gratuito que
    dispara `repository_dispatch`, sin servidor propio.

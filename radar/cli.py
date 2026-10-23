@@ -80,7 +80,11 @@ def cmd_backtest(_: argparse.Namespace) -> int:
 def cmd_resumen(args: argparse.Namespace) -> int:
     df, senales, a = _cargar()
     bt = backtest(df["usdclp"], senales["compuesto"])
-    texto = reporte.resumen(a, bt, _avisos())
+    wf = investigacion.walk_forward(investigacion.preparar(df["usdclp"], senales))
+    base = wf["prueba"]["DCA (todo el día 1)"]
+    prueba = [("timing v0.1", investigacion.mejora_pct(wf["prueba"][investigacion.RadarV01.nombre], base)),
+              ("acumular si caro", investigacion.mejora_pct(wf["prueba"][wf["elegida"].nombre], base))]
+    texto = reporte.resumen(a, bt, _avisos(), prueba)
     DIR_REPORTES.mkdir(exist_ok=True)
     (DIR_REPORTES / "ultimo-resumen.txt").write_text(texto + "\n", encoding="utf-8")
     _salida(texto, args.enviar)

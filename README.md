@@ -2,35 +2,27 @@
 
 Señales para **ahorrar en dólares a largo plazo desde Chile**: cada día hábil revisa el dólar
 observado, el cobre, el dólar global, las tasas y la aversión al riesgo; los lunes envía un
-resumen a Telegram y avisa cuando cambia el semáforo (🟢 COMPRAR · 🟡 NEUTRAL · 🔴 ESPERAR).
+resumen a Telegram y avisa cuando cambia el semáforo (🟢 BARATO · 🟡 NORMAL · 🔴 CARO).
 
 Corre sin servidores en **GitHub Actions**; los datos se versionan como CSV en `data/series/`.
 
 > Herramienta personal y educativa. **No es asesoría financiera.** Si se ofreciera a terceros como
 > recomendación de inversión, revisar la Ley Fintec (21.521) y el registro de asesores ante la CMF.
 
-## Cómo se usa la señal
+## Qué recomienda (y por qué)
 
-Regla para tu cuota mensual de ahorro:
+**Compra tu cuota completa cada mes (DCA).** El semáforo describe si el dólar está barato o caro
+frente a lo que lo mueve; no es una orden de compra, porque ninguna regla de *timing* probada le ha
+ganado a DCA fuera de muestra:
 
-1. **50%** el primer día hábil del mes, siempre.
-2. **50%** el primer día del mes en que el radar marque **COMPRAR**; si no ocurre, el último día hábil.
-
-El backtest compara exactamente esta regla contra comprar el 100% el primer día (DCA).
-
-## Estado de la evidencia (v0.1, 2026-10-23)
-
-Backtest 2012-11 a 2026-09, 167 meses, mismo presupuesto mensual:
-
-| Estrategia | CLP por dólar | vs DCA |
+| Estrategia | Historia 2012–2026 | Fuera de muestra 2020–2026 |
 |---|---|---|
-| DCA (todo el día 1) | $711,28 | — |
-| Radar v0.1 | $711,89 | **−0,09%** |
+| Timing dentro del mes (v0.1) | −0,09% | −0,07% |
+| Acumular pesos si el dólar está caro (#10) | — | −0,21% (en diseño parecía +0,28%: sobreajuste) |
 
-**Hoy las señales no le ganan a DCA.** Ninguna señal por sí sola lo hace de forma significativa
-(`radar backtest` muestra el detalle). El radar sí describe bien *dónde* está el dólar (caro o barato
-frente a cobre y dólar global), pero mover media cuota dentro del mismo mes no captura valor.
-Ver [docs/METODOLOGIA.md](docs/METODOLOGIA.md) y la hoja de ruta.
+Detalle en [docs/INVESTIGACION.md](docs/INVESTIGACION.md) y [docs/METODOLOGIA.md](docs/METODOLOGIA.md).
+Nuevas señales (p. ej. flujos del Banco Central) se evalúan con `radar investigar` antes de cambiar
+esta recomendación.
 
 ## Uso local
 
@@ -40,6 +32,7 @@ pip install -e ".[dev]"
 radar actualizar        # descarga series (la primera vez rellena desde 2012, ~3 min)
 radar senales           # estado actual con explicación de cada señal
 radar backtest          # radar vs DCA y cada señal por separado
+radar investigar        # walk-forward: parámetros con 2012-2019, resultado en 2020-2026
 radar resumen           # texto del resumen semanal (--enviar para Telegram)
 radar alerta            # aviso solo si cambió el semáforo (--enviar)
 radar prueba-telegram   # verifica el bot
