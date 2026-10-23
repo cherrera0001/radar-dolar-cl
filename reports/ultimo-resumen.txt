@@ -1,0 +1,18 @@
+💵 Radar Dólar Chile · datos al 2026-10-26
+Dólar observado: $990,35
+
+🔴 ESPERAR · puntaje −0,58 (umbral ±0,25) · 4 de 6 señales de acuerdo
+Dólar caro según las señales: mantén la mitad táctica en pesos hasta COMPRAR o fin de mes.
+
+Señales (+ comprar / − esperar):
+ ▼ −1,00 Valor justo (cobre + dólar global): dólar +7,5% caro vs su valor justo de $921,60
+ ▼ −1,00 Posición en el último año: percentil 100 de los últimos 12 meses (0 = mínimo, 100 = máximo)
+ ▼ −0,29 Tendencia del cobre (3 meses): cobre +4,4% en 3 meses
+ ▲ +0,10 Tendencia del dólar global (3 meses): dólar global +0,5% en 3 meses
+ ▲ +0,16 Diferencial de tasas Chile - EE.UU. (6 meses): TPM − Fed = 0,62 pts (−0,24 en 6 meses)
+ ▼ −0,15 Aversión al riesgo (VIX): VIX sobre su media anual (0,3 desv.)
+
+📊 Backtest 2012-11 a 2026-09 (167 meses): el radar obtuvo 0,09% menos dólares que comprar fijo cada mes (mejor en 77, peor en 65 meses; $711,89 vs $711,28 por dólar).
+
+Regla: 50% de la cuota el primer día hábil del mes; 50% al primer COMPRAR o el último día hábil.
+Fuentes: mindicador.cl (dólar observado, cobre, TPM) y FRED (DXY, Fed, VIX). Herramienta personal; no es asesoría financiera.
