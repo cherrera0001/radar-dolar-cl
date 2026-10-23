@@ -35,5 +35,8 @@
    "aviso_atraso": false
   }
  },
- "avisos_pendientes": []
+ "avisos_pendientes": [],
+ "estado": "CARO",
+ "fecha": "2026-10-26",
+ "compuesto": -0.5824249622111437
 }
