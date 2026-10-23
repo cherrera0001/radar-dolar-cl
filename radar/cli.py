@@ -7,7 +7,7 @@ import sys
 from datetime import date
 from pathlib import Path
 
-from . import almacen, reporte, telegram
+from . import almacen, investigacion, reporte, telegram
 from .actualizar import actualizar
 from .backtest import backtest
 from .senales import DEFINICIONES, SERIES, calcular
@@ -108,6 +108,31 @@ def cmd_alerta(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_investigar(_: argparse.Namespace) -> int:
+    """Walk-forward (#9/#10): parámetros elegidos con el diseño, resultado medido en la prueba."""
+    df, senales, _ = _cargar()
+    wf = investigacion.walk_forward(investigacion.preparar(df["usdclp"], senales))
+    lineas = ["# Investigación walk-forward (generado por `radar investigar`)", "",
+              f"Corte: diseño < {investigacion.CORTE.date()} <= prueba. Parámetros elegidos solo con diseño.",
+              f"Estrategia elegida: **{wf['elegida'].nombre}** (en diseño: {wf['mejora_diseno']:+.3f}% vs DCA)", ""]
+    for periodo in ("diseno", "prueba"):
+        res = wf[periodo]
+        base = next(iter(res.values()))
+        lineas += [f"## {'Diseño (sobreajustado por construcción)' if periodo == 'diseno' else 'Prueba (lo que importa)'}"
+                   f" · {base.desde} a {base.hasta}, {base.meses} meses", "",
+                   "| Estrategia | CLP por dólar | vs DCA | Máx. meses sin comprar | Máx. caja (cuotas) |",
+                   "|---|---|---|---|---|"]
+        for r in res.values():
+            lineas.append(f"| {r.estrategia} | {r.precio_medio:,.2f} | {investigacion.mejora_pct(r, base):+.3f}% "
+                          f"| {r.max_meses_sin_comprar} | {r.max_caja_cuotas:.0f} |")
+        lineas.append("")
+    texto = "\n".join(lineas)
+    DIR_REPORTES.mkdir(exist_ok=True)
+    (DIR_REPORTES / "investigacion.md").write_text(texto + "\n", encoding="utf-8")
+    print(texto)
+    return 0
+
+
 def cmd_prueba(_: argparse.Namespace) -> int:
     telegram.enviar("✅ Radar Dólar Chile: conexión con Telegram funcionando.")
     print("Mensaje de prueba enviado.")
@@ -124,6 +149,7 @@ def main(argv: list[str] | None = None) -> int:
         sp = sub.add_parser(nombre, help=ayuda)
         sp.add_argument("--enviar", action="store_true", help="enviar a Telegram")
         sp.set_defaults(f=f)
+    sub.add_parser("investigar", help="walk-forward: diseño hasta 2019, prueba desde 2020").set_defaults(f=cmd_investigar)
     sub.add_parser("prueba-telegram", help="envía un mensaje de prueba").set_defaults(f=cmd_prueba)
     args = p.parse_args(argv)
     try:
