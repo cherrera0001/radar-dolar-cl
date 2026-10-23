@@ -1,0 +1,14 @@
+{
+  "council_ref": "2026-10-23_220000_recomendacion_comprar_vender_mantener",
+  "decision_made": "Instrucciones del plan (SIN SEÑAL > VENDER por necesidad > MANTENER > COMPRAR cuota completa en canal barato); modulación y VENDER por banda en sombra",
+  "ts": "2026-10-23T22:00:00-03:00",
+  "dissents": [
+    {"id": "D1", "from": "E (Gestor de riesgo)", "position": "Banda estrecha +5/+10 pp con VENDER tras 2 meses; colchón con necesidades a 24 meses", "reactivation_condition": "Backtest #29 muestra que la banda estrecha reduce el CVaR 5% a 12 meses en ≥2 pp frente a +10/+20, con costo ≤0,2%/año, en 2012–19 y 2020–26", "evidence_needed": "Salida de #29 con CVaR y pérdida realizada por banda", "status": "archived"},
+    {"id": "D2", "from": "F (Operador mesa FX)", "position": "R-EJEC (orden límite en Buda días 1–5) en producción", "reactivation_condition": "Paper trading de 6 meses (#30) con ahorro medio ≥0,15 pp vs Fintual a mercado y tasa de ejecución ≥90% al día 5", "evidence_needed": "Libro de Buda (#25) y bitácora de órdenes simuladas", "status": "archived"},
+    {"id": "D3", "from": "D (Economista macro)", "position": "VENDER por banda (w > w*+20 pp) en producción ya", "reactivation_condition": "#29: el rebalanceo con bandas le gana a DCA + colchón neto de 0,93% ida y vuelta en ambas submuestras y en AUD/NZD/PEN", "evidence_needed": "#29 + #28", "status": "archived"},
+    {"id": "D4", "from": "C (Asesor financiero)", "position": "Cadencia semanal de evaluación y mensaje", "reactivation_condition": "Contador en la bitácora > 0 de necesidades declaradas que llegan a ≤60 días sin aviso previo", "evidence_needed": "Bitácora del motor v1 (#21)", "status": "archived"},
+    {"id": "D5", "from": "B, C, F", "position": "Umbral de 0,5% neto suficiente sin SPA familiar", "reactivation_condition": "REGISTRO.md muestra una familia ≤5 pruebas para la hipótesis evaluada (pre-registro único, sin re-ejecuciones en git log)", "evidence_needed": "#26", "status": "archived"},
+    {"id": "D6", "from": "Presidente (contra A)", "position": "2020–26 no está quemado para series de flujo nunca cargadas", "reactivation_condition": "git log muestra que el commit de pre-registro de H2/H3 es anterior al primer commit con datos NDF/derivados", "evidence_needed": "#23 + #26", "status": "archived"},
+    {"id": "D7", "from": "Presidente (contra el consenso)", "position": "El paper trading de 12 meses no valida estadísticamente (MDE ≈0,78%)", "reactivation_condition": "Algún informe de aprobación cita el resultado en papel como evidencia de ventaja", "evidence_needed": "Informe de aprobación de cualquier modulador", "status": "archived"}
+  ]
+}

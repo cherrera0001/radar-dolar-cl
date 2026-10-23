@@ -1,0 +1,117 @@
+{
+  "council_protocol_version": "v1_verified_dissents_brittleness",
+  "timestamp": "2026-10-23_220000",
+  "ts": "2026-10-23T22:00:00-03:00",
+  "topic": "Recomendación COMPRAR / VENDER / MANTENER del Radar Dólar CL",
+  "question": "¿Qué regla de decisión, horizonte, datos y gestión de riesgo permiten emitir COMPRAR/VENDER/MANTENER dólares con evidencia fuera de muestra y neta de costos para un ahorrista chileno mensual (US$200–2.000/mes, horizonte de años, posible necesidad de pesos), o la evidencia obliga a redefinir esos términos?",
+  "issue": "#15",
+  "brief": "councils/agenda/2026-10-23_recomendacion_comprar_vender_mantener.md",
+  "stage1_anonimizado": "councils/sesiones/2026-10-23_recomendacion/stage1_posiciones_anonimas.md",
+  "informe_presidente": "councils/sesiones/2026-10-23_recomendacion/informe_presidente.md",
+  "stage0_verified": [
+    "Señales de precio/fundamentales no le ganan a DCA fuera de muestra (v0.1 −0,13%; acumulación −0,04%)",
+    "Cobre/DXY sin adelanto robusto >1 día",
+    "Techo del timing intra-mes 1,8–2,5% (oráculo); día 1 ≡ promedio",
+    "Costo del canal 0,2–2,5% por compra; ida y vuelta 0,9–5%",
+    "Existen series diarias de NDF de no residentes y derivados por sector (BCCh)",
+    "Flujos mueven el CLP contemporáneamente; poder predictivo con rezago no demostrado"
+  ],
+  "councilors": [
+    {"id": "A", "role": "Cuantitativo / estadístico", "confidence": 0.85, "position": "Sin timing; COMPRAR = cuota completa en canal barato; VENDER solo por necesidad; única regla táctica admisible R-MOD 0,75x–1,25x con protocolo duro (SPA, holdout 1999–2011, ≥3/4 pares, ≥0,75%); 2020–26 quemado; simular() con caja 0%"},
+    {"id": "B", "role": "Red team regulatorio y de producto", "confidence": 0.80, "position": "COMPRA TU CUOTA por defecto; salvaguardas para pasar de contexto a instrucción (prerregistro, ≥0,5% neto, IC sin 0 tras multiplicidad, vintages, 12 meses en vivo, SIN SEÑAL, sin push, canales neutrales); marco legal Ley 21.521/NCG 502"},
+    {"id": "C", "role": "Asesor financiero personal", "confidence": 0.80, "position": "Regla semanal según el plan del usuario: VENDER solo por necesidad ≤90 días o USD > W*+10 pp; COMPRAR el día de compra con colchón de 6 meses completo; MANTENER en otro caso; contexto rotulado 'no es señal'"},
+    {"id": "D", "role": "Economista macro (estilo banca central)", "confidence": 0.75, "position": "Regla de asignación: w* sobre patrimonio financiero; COMPRAR w < w*+10; MANTENER (cuota a pesos) hasta w*+20; VENDER sobre w*+20 o necesidad <12 meses en tramos; contexto con tipo de cambio real"},
+    {"id": "E", "role": "Gestor de riesgo", "confidence": 0.80, "position": "Exposición objetivo con colchón CLP (6 meses + necesidades <24 meses); banda +5/+10 pp con VENDER tras 2 meses; métricas de colas (CVaR, pérdida realizada); límites de custodia ≤20% sin garantía"},
+    {"id": "F", "role": "Operador de mesa de dinero FX en Chile", "confidence": 0.80, "position": "Sin señal de dirección; reglas de ejecución (R-EJEC orden límite días 1–5, sin operar tras la RPM), salida escalonada (R-SAL) y colchón (R-COLCHÓN); el observado no es precio ejecutable"}
+  ],
+  "stage2_peer_review": {
+    "verifications": {
+      "a_simular_caja_0pct": "VERIFICADO (investigacion.py:133-153: caja y USD sin rendimiento ni costos). Corrigiendo caja=TPM y USD=Fed−1% en la prueba 2020-01..2026-09: acumulación elegida −0,041% → +0,020%; v0.1 −0,129% → −0,037%. Sesgo en la dirección señalada por A, magnitud 0,06–0,09 pp, dentro del ruido. En la grilla vista en prueba, la mejor combinación (N=6, entrada 2%) da +0,77% / +0,97%: ilustra la multiplicidad. Los costos proporcionales se cancelan en estrategias solo de compra con igual gasto.",
+      "b_colas": "VERIFICADO exacto: −25,07% de 1.042,97 (15-jul-2022) a 781,49 (3-feb-2023); vol 11,0% (13,1% desde 2020); peor 12m −22,2%; pandemia −18,2%; 2025-26 −15,7%. Pérdida latente DCA de E subestimada: −11,6% / −9,2% / −9,4% (vs −9,7 / −7,4 / −8,2).",
+      "c_quemado": "VERIFICADO para hipótesis de precio (prueba ejecutada 2 veces; H1 formulada mirando 2020-26; ≈144 pruebas; todo el historial git es de un día). EXAGERADO para flujos: NDF/derivados nunca cargados; 2020-26 usable para H2/H3 con pre-registro previo al commit de datos y control de concentración en episodios.",
+      "potencia": "MDE de la modulación ±25%: ≈0,48–0,64% en la muestra completa; ≈0,78% con 12 meses (Monte Carlo propio, 20.000 señales aleatorias). Confirma el orden de magnitud de A."
+    },
+    "by_position": {
+      "A": {"strengths": "potencia y multiplicidad cuantificadas; protocolo más exigente", "weaknesses": "no define MANTENER ni colchón; costos irrelevantes en reglas solo de compra; 'quemado' absoluto", "verified": ["caja 0%", ">130 pruebas", "MDE en orden de magnitud"], "refuted": []},
+      "B": {"strengths": "SIN SEÑAL, política de notificaciones, neutralidad de canales, marco legal", "weaknesses": "citas legales NO VERIFICADAS; umbral 0,5% sin decir si es anual o total", "verified": ["el bot hoy encabeza con '🔴 CARO' (reports/ultimo-resumen.txt)"], "refuted": []},
+      "C": {"strengths": "regla operable y mensaje concreto", "weaknesses": "cadencia semanal innecesaria; banda ±10 no probada", "verified": ["ahorro ~$9.500/mes Fintual vs BancoEstado", "−15,4% a t+20 jul-2022"], "refuted": []},
+      "D": {"strengths": "USD como seguro; tipo de cambio real; grilla a priori", "weaknesses": "VENDER por banda pudo perder en 2012-19; w*=40% arbitrario", "verified": ["+16,7% en 27 días 2019"], "refuted": []},
+      "E": {"strengths": "colas, CVaR, pérdida realizada, custodia", "weaknesses": "banda estrecha con ventas; colchón a 24 meses costoso", "verified": ["colas exactas"], "refuted": ["pérdida latente DCA subestimada en 1,2–1,9 pp"]},
+      "F": {"strengths": "ejecución; observado ≠ precio ejecutable; RPM", "weaknesses": "R-EJEC sin datos de libro; ganancia ≈0,15 pp", "verified": ["observado del día hábil anterior (DESFASE_MERCADO)"], "refuted": []}
+    }
+  },
+  "decision": {
+    "summary": "COMPRAR/VENDER/MANTENER se redefinen como instrucciones del plan del usuario, no como pronósticos. Producción v1 solo para el dueño; lectores externos reciben contenido genérico.",
+    "precedence": ["SIN SEÑAL", "VENDER", "MANTENER", "COMPRAR"],
+    "SIN_SENAL": "insumo vencido, divergencia mindicador/BCCh >0,3%, sin precio ejecutable en 24 h o perfil sin confirmar >6 meses; no suspende el plan: tras 5 días hábiles se emite COMPRAR",
+    "VENDER": "solo necesidad declarada (fecha y monto) a ≤12 meses no cubierta por el colchón; déficit en tramos mensuales (≤6); canal con ida y vuelta ≤1%; nunca por precio. VENDER por banda (w > w*+20 pp) en modo sombra",
+    "MANTENER": "colchón incompleto o w > w*+10 pp: la cuota del mes va a pesos, sin vender",
+    "COMPRAR": "cuota completa 1,0x en días hábiles 1–5 del mes de cobro, canal más barato verificado ese día dentro de los límites de custodia, nunca entre el comunicado de la RPM (18:00) y la apertura siguiente",
+    "colchon": "6 meses de gasto + 100% de necesidades con fecha ≤12 meses; las de 12–24 meses activan tramos al entrar a 12 meses",
+    "custodia": "≤20% de los USD sin garantía, solo como canal de paso; depósitos ≤UF 200 por banco",
+    "notificaciones": "1 mensaje mensual de acción + aviso de necesidad a 90 días; sin push por cambios del semáforo; semáforo al pie, sin colores, rotulado 'Contexto (no es señal)', con tipo de cambio real",
+    "modulacion_flujos": "0,75x–1,25x, sin saltarse meses, caja ≤2 cuotas; solo tras pasar validation_protocol completo",
+    "produccion_hoy": ["motor v1 para el perfil del dueño (un chat)", "contenido genérico + tabla de costos con metodología para cualquier otro lector"],
+    "modo_sombra": ["H2 NDF no residentes", "H3 derivados AFP", "H4 momentum", "VENDER por banda", "R-EJEC orden límite", "H1 y valor justo solo como contexto"]
+  },
+  "rationale": [
+    "Seis de seis posiciones y Stage 0 coinciden: ninguna señal de precio le gana a DCA fuera de muestra; las diferencias (±0,3%) están bajo la MDE (0,48–0,78%)",
+    "Corregir el rendimiento de la caja mueve los resultados solo 0,06–0,09 pp: no rescata el timing",
+    "El canal (~2 pp) y el colchón frente a colas de −22% a −25% son el valor controlable",
+    "Rebalancear con el flujo nuevo no cuesta comisiones; vender cuesta 0,9–5% ida y vuelta y no está probado",
+    "Ventana días 1–5 sin costo porque día 1 ≡ promedio del mes"
+  ],
+  "implementation": [
+    {"issue": "#21", "title": "Motor de decisión v1 + mensaje", "goal": "emitir COMPRAR/MANTENER/VENDER/SIN SEÑAL según el plan", "criteria": "precedencia; 1 mensaje al mes; semáforo sin colores al pie; etiqueta del observado corregida (990,35 = vigente 26-oct); tests por estado"},
+    {"issue": "#22", "title": "Monitor de frescura y conciliación (absorbe #7)", "goal": "activar SIN SEÑAL de forma confiable", "criteria": "antigüedad por serie, divergencia >0,3%, tope de 5 días"},
+    {"issue": "#23", "title": "Captura diaria de vintages BCCh NDF/derivados", "goal": "guardar fecha de publicación desde hoy", "criteria": "fuera de data/series hasta el pre-registro; snapshots inmutables"},
+    {"issue": "#24", "title": "Perfil privado y registro de compras", "goal": "w*, G, necesidades y saldos por custodio", "criteria": "cifrado, fuera del repo, confirmación cada 6 meses"},
+    {"issue": "#25", "title": "Panel de costo ejecutable por canal", "goal": "histórico del costo real por canal", "criteria": "Buda cada 15 min en horario hábil; dolaronline 1–2/día; costo vs precio medio; alerta si p90 >1% durante 5 días"},
+    {"issue": "#26", "title": "REGISTRO.md y pre-registro", "goal": "controlar la multiplicidad", "criteria": "familia acumulada; nulos aleatorios; SPA/RC; DSR; PBO"},
+    {"issue": "#27", "title": "Simulador v2", "goal": "backtest realista", "criteria": "rendimiento caja/USD, costos de venta, necesidades inyectadas, CVaR, pérdida realizada; escenarios 2019/2020/2022-23/2025-26"},
+    {"issue": "#28", "title": "Holdouts sellados", "goal": "datos de validación limpios", "criteria": "USDCLP 1999–2011 (BDE) + AUD/NZD/PEN/COP/BRL; acceso solo aprobado/rechazado"},
+    {"issue": "#29", "title": "Backtest de asignación con bandas", "goal": "decidir VENDER por banda", "criteria": "grilla fija a priori; vs DCA + colchón; ambas submuestras y pares"},
+    {"issue": "#30", "title": "Libro de paper trading", "goal": "sombra de H2/H3/H4 y R-EJEC", "criteria": "bitácora inmutable; degradación automática >1σ bajo DCA"},
+    {"issue": "#31", "title": "Revisión legal", "goal": "habilitar lectores externos", "criteria": "opinión escrita o consulta CMF antes de sumar un lector"},
+    {"issue": "#20", "title": "Calidad del cobre + contexto con tipo de cambio real", "goal": "datos y contexto correctos", "criteria": "huecos dic-2017 y 46 días; TCR BCCh en el contexto"}
+  ],
+  "validation_protocol": {
+    "preregistration": "docs/REGISTRO.md con hash de commit, anterior al primer commit de datos de la hipótesis; familia acumulada (≈144 hoy)",
+    "holdouts": ["USDCLP 1999–2011 en sobre sellado", "AUD/NZD/PEN/COP/BRL", "2020–26 solo para series de flujo nunca cargadas, con el signo mantenido al quitar los 2 mejores episodios"],
+    "thresholds": {
+      "mejora_usd_neta_ventana_prueba": ">= max(0,5%, 2,8*sigma_nulo con igual rotación)",
+      "spa_hansen_p": "<0,05 sobre la familia",
+      "deflated_sharpe": ">0",
+      "signo_subperiodos": "mismo signo 2020–22 y 2023–26",
+      "pares_externos": ">=3 de 4 mismo signo",
+      "peor_anio_vs_dca": ">= -1%",
+      "max_meses_sin_comprar": 2,
+      "vender_por_banda": "reduce CVaR 5% 12m o pérdida realizada, costando <=0,2%/año vs DCA+colchón, neto de 0,93% ida y vuelta"
+    },
+    "paper_trading": "12 meses como control operativo (frescura 100%, degradación >1σ bajo DCA); no es prueba estadística (MDE 12 meses ≈0,78%)"
+  },
+  "brittleness_trap": {
+    "chairman": "evidence_auditor",
+    "response": "El consenso redefinió COMPRAR/VENDER/MANTENER como relativos al perfil, pero el producto es un broadcast: telegram.py usa un único TELEGRAM_CHAT_ID sin estado por usuario, y semanal.yml/diario.yml hacen `git add data reports` y push a GitHub. Con un segundo lector, MANTENER/VENDER calculado con el w* del dueño se lee como señal de mercado: reintroduce el timing rechazado y la habitualidad que la CMF considera asesoría. Además, guardar perfiles en un repo 'git es la base de datos' expone las finanzas del dueño. Secundario: la única 'ganancia segura' (canal barato) descansa en una sola foto de precios del 23-oct-2026.",
+    "detection": [
+      "getChatMemberCount > 1 ⇒ bloquear estados no genéricos",
+      "test que falle si el mensaje contiene MANTENER o VENDER y el destino no es el chat del dueño",
+      "control en CI que falle si aparece un archivo de perfil bajo data/ o reports/",
+      "#25: alerta si el p90 del costo de un canal supera 1% durante 5 días"
+    ],
+    "code_references": [
+      "radar/telegram.py:16 — TELEGRAM_CHAT_ID único",
+      ".github/workflows/semanal.yml — git add data reports + push",
+      "reports/ultimo-resumen.txt:4 — '🔴 CARO' como titular",
+      "radar/investigacion.py:133-153 — caja y USD sin rendimiento"
+    ]
+  },
+  "secretary_notes": [
+    "Roles revelados después de la síntesis (A Cuantitativo, B Red team, C Asesor, D Economista, E Riesgo, F Operador).",
+    "Visibilidad del repo: VERIFICADA privada (creado con `gh repo create --private` el 2026-10-23). El riesgo de exponer perfiles en data/ o reports/ persiste ante un cambio de visibilidad o un colaborador: se mantiene el control de CI.",
+    "El bot con lectores (TELEGRAM_READERS, /autorizar) es el del monitor del PC (otro token); el bot del radar (C4A_Finance_Bot) hoy envía a un único chat. La trampa aplica en cuanto se le agreguen lectores."
+  ],
+  "status": "decided_but_unauthorized",
+  "human_adversarial_pass": null,
+  "outcome_tracked": false
+}
