@@ -3,11 +3,16 @@
 from __future__ import annotations
 
 import argparse
+import csv
 import sys
-from datetime import date
+from datetime import date, timedelta
 from pathlib import Path
 
+import pandas as pd
+
 from . import almacen, investigacion, reporte, salud, telegram
+from .fuentes import bcentral
+from .fuentes.base import FuenteError
 from .actualizar import actualizar
 from .backtest import backtest
 from .senales import DEFINICIONES, SERIES, calcular
@@ -148,6 +153,34 @@ def cmd_investigar(_: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_bcch(args: argparse.Namespace) -> int:
+    """#5/#6: prueba de conexión con la API BDE y catálogo de series para elegir códigos."""
+    if not bcentral.credenciales():
+        print("Faltan BCCH_USER / BCCH_PASS (secretos del repo o variables de entorno).", file=sys.stderr)
+        return 1
+    hoy = date.today()
+    if args.accion == "prueba":
+        oficiales = bcentral.descargar("usdclp", hoy - timedelta(days=20), hoy)
+        print(f"API BDE OK (Codigo 0): {len(oficiales)} observaciones del dólar observado oficial")
+        guardado = almacen.leer("usdclp")
+        for p in oficiales[-5:]:
+            ts = pd.Timestamp(p.fecha)
+            otro = guardado.get(ts)
+            dif = f"{p.valor - otro:+.2f}" if otro is not None else "sin dato en mindicador"
+            print(f"  {p.fecha}  BCCh {p.valor:,.2f}  ·  mindicador {otro if otro is not None else '—'}  ·  diferencia {dif}")
+        return 0
+    filas = bcentral.buscar(args.frecuencia)
+    DIR_REPORTES.mkdir(exist_ok=True)
+    ruta = DIR_REPORTES / f"bcch-catalogo-{args.frecuencia.lower()}.csv"
+    columnas = sorted({k for f in filas for k in f})
+    with ruta.open("w", newline="", encoding="utf-8") as f:
+        w = csv.DictWriter(f, fieldnames=columnas, lineterminator="\n")
+        w.writeheader()
+        w.writerows(filas)
+    print(f"{len(filas)} series {args.frecuencia} -> {ruta}")
+    return 0
+
+
 def cmd_prueba(_: argparse.Namespace) -> int:
     telegram.enviar("✅ Radar Dólar Chile: conexión con Telegram funcionando.")
     print("Mensaje de prueba enviado.")
@@ -166,12 +199,19 @@ def main(argv: list[str] | None = None) -> int:
         sp.set_defaults(f=f)
     sub.add_parser("investigar", help="walk-forward: diseño hasta 2019, prueba desde 2020").set_defaults(f=cmd_investigar)
     sub.add_parser("prueba-telegram", help="envía un mensaje de prueba").set_defaults(f=cmd_prueba)
+    sp = sub.add_parser("bcch", help="API del Banco Central: prueba de conexión o catálogo de series")
+    sp.add_argument("accion", choices=["prueba", "catalogo"])
+    sp.add_argument("--frecuencia", default="DAILY", choices=["DAILY", "MONTHLY", "QUARTERLY", "ANNUAL"])
+    sp.set_defaults(f=cmd_bcch)
     args = p.parse_args(argv)
     try:
         return args.f(args)
     except telegram.TelegramError as e:
         print(f"ERROR Telegram: {e}", file=sys.stderr)
         return 2
+    except FuenteError as e:
+        print(f"ERROR fuente: {e}", file=sys.stderr)
+        return 3
 
 
 if __name__ == "__main__":

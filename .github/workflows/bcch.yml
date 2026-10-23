@@ -1,0 +1,51 @@
+name: Banco Central (manual)
+
+# Issues #5 y #6. Requiere los secretos BCCH_USER y BCCH_PASS.
+#   prueba:   confirma Codigo 0 y compara el dólar observado oficial con mindicador
+#   catalogo: guarda reports/bcch-catalogo-<frecuencia>.csv para elegir series
+on:
+  workflow_dispatch:
+    inputs:
+      accion:
+        description: "prueba o catalogo"
+        type: choice
+        options: [prueba, catalogo]
+        default: prueba
+      frecuencia:
+        description: "frecuencia del catálogo"
+        type: choice
+        options: [DAILY, MONTHLY, QUARTERLY, ANNUAL]
+        default: DAILY
+
+permissions:
+  contents: write
+
+concurrency:
+  group: radar-datos
+  cancel-in-progress: false
+
+jobs:
+  bcch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+      - run: pip install -e .
+      - name: radar bcch ${{ inputs.accion }}
+        env:
+          BCCH_USER: ${{ secrets.BCCH_USER }}
+          BCCH_PASS: ${{ secrets.BCCH_PASS }}
+        run: radar bcch ${{ inputs.accion }} --frecuencia ${{ inputs.frecuencia }}
+      - name: Versionar catálogo
+        if: inputs.accion == 'catalogo'
+        run: |
+          git config user.name "radar-dolar[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add reports
+          git diff --cached --quiet || git commit -m "data: catálogo BCCh ${{ inputs.frecuencia }} $(date -u +%F)"
+          git push
