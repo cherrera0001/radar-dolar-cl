@@ -11,10 +11,10 @@ from pathlib import Path
 import pandas as pd
 
 from . import almacen, investigacion, reporte, salud, telegram
-from .fuentes import bcentral
-from .fuentes.base import FuenteError
 from .actualizar import actualizar
 from .backtest import backtest
+from .fuentes import bcentral
+from .fuentes.base import FuenteError
 from .senales import DEFINICIONES, SERIES, calcular
 
 DIR_REPORTES = Path("reports")
