@@ -7,8 +7,9 @@ Lo consultas en **Telegram** (`/estado`, `/historia`, `/prediccion`, `/grafico`�
 Streamlit. Todo corre en **GitHub Actions**, sin servidor propio; los datos son CSV versionados en
 `data/series/`.
 
-> **No es asesoría financiera.** Describe el pasado y no garantiza el futuro. Si se ofreciera a terceros
-> como recomendación de inversión, revisar la Ley Fintec (21.521) y el registro de asesores ante la CMF.
+> **No es asesoría financiera.** Describe el pasado y no garantiza el futuro. Las instrucciones de acción
+> son del plan personal del dueño. Ofrecerlas a terceros requiere revisión legal (Ley Fintec 21.521, CMF),
+> pendiente por decisión del dueño.
 
 ## Qué recomienda (y por qué)
 
@@ -25,9 +26,10 @@ Cifras con fechas de mercado alineadas y decisión con la señal del día anteri
 Lo que sí ahorra con certeza es el **canal de compra**: ~2,5% en la pizarra de un banco vs ~0,5%
 en canales de bajo spread ([estado del arte](docs/ESTADO_DEL_ARTE.md)).
 
-> **Pendiente de decisión:** un concilio del 2026-10-23 autorizó emitir COMPRAR / VENDER / MANTENER.
-> Es incompatible con lo anterior. Hasta resolverlo, esa salida no se implementa
-> ([especificación 001, aclaraciones](specs/001-radar-nucleo/spec.md#aclaraciones-pendientes)).
+**Describir y ordenar.** El radar describe el semáforo y, además, emite una instrucción mensual según el plan
+del dueño: SIN SEÑAL, VENDER, MANTENER o COMPRAR (decisión del concilio
+`councils/decisions/2026-10-23_220000_*.json`). La instrucción depende del perfil, del calendario y de datos
+vigentes; no depende de adivinar el precio. Ver [especificación 003](specs/003-motor-acciones/spec.md).
 
 Detalle en [docs/INVESTIGACION.md](docs/INVESTIGACION.md) y [docs/METODOLOGIA.md](docs/METODOLOGIA.md).
 Nuevas señales se evalúan con `radar investigar` antes de cambiar esta recomendación.
@@ -53,6 +55,7 @@ radar backtest          # radar vs DCA y cada señal por separado
 radar investigar        # walk-forward: parámetros con 2012-2019, resultado en 2020-2026
 radar resumen           # texto del resumen semanal (--enviar para Telegram)
 radar alerta            # aviso solo si cambió el semáforo (--enviar)
+radar accion           # instrucción del mes (días 1 a 5); --enviar la manda al dueño, una vez
 radar prueba-telegram   # verifica el bot de alertas
 radar bot               # atiende comandos de Telegram en continuo (Ctrl+C para salir)
 radar bot --una-vez     # atiende lo pendiente y termina (lo que usa Actions)
@@ -64,7 +67,7 @@ pytest -q && ruff check radar tests
 
 | Workflow | Cuándo | Qué hace |
 |---|---|---|
-| `diario.yml` | Lun–vie 12:00 UTC | Actualiza series, avisa si cambia el semáforo, versiona `data/` |
+| `diario.yml` | Lun–vie 12:00 UTC | Actualiza series, avisa de salud de fuentes, instrucción mensual al dueño (días 1 a 5), versiona `data/` |
 | `semanal.yml` | Lunes 12:30 UTC | Resumen + backtest a Telegram, versiona `data/` y `reports/` |
 | `bot.yml` | Cada 30 min | Atiende consultas de Telegram, versiona el offset `data/bot.json` |
 | `ci.yml` | Push/PR | ruff + pytest |
@@ -73,17 +76,22 @@ pytest -q && ruff check radar tests
 (*Settings → Billing & plans*). Si la facturación falla, GitHub no arranca ningún job; el radar deja de
 actualizar datos y de responder.
 
-Secretos del repo: `TELEGRAM_BOT_TOKEN` (bot y alertas), `TELEGRAM_CHAT_ID` (alertas al dueño) y,
-en la fase 2, `BCCH_USER` / `BCCH_PASS`.
+Secretos del repo: `TELEGRAM_BOT_TOKEN` (bot y alertas), `TELEGRAM_CHAT_ID` (alertas al dueño),
+`PERFIL_DUENO` (perfil personal en JSON; nunca va al repo) y, en la fase 2, `BCCH_USER` / `BCCH_PASS`.
 Variables del repo (opcional): `DASHBOARD_URL`, la URL pública del panel que muestra `/ayuda`.
 
 ## Documentación de diseño
 
+- [Especificación 003 · motor de acciones](specs/003-motor-acciones/spec.md), con [plan](specs/003-motor-acciones/plan.md) y [tareas](specs/003-motor-acciones/tasks.md).
 - [Constitución](.specify/memory/constitution.md): principios que todo cambio respeta.
 - [Especificación 001 · núcleo](specs/001-radar-nucleo/spec.md): qué hace el radar, historias de usuario y criterios.
 - [Especificación 002 · bot y panel públicos](specs/002-bot-y-panel-publicos/spec.md), con
   [plan y tareas](specs/002-bot-y-panel-publicos/tasks.md).
 - [Concilios](councils/README.md): decisiones de producto y su registro.
+
+## Licencia
+
+Código bajo [MIT](LICENSE). Los datos conservan las condiciones de sus fuentes.
 
 ## Fuentes
 
@@ -109,5 +117,5 @@ código HTTP: un `200` con un error dentro es la forma más común en que una in
    [INVESTIGACION.md](docs/INVESTIGACION.md).
 3. **Respuesta inmediata en Telegram:** hoy el bot responde en hasta ~30 minutos (cron en Actions).
    Opción: un Cloudflare Worker gratuito que dispare el workflow al recibir el mensaje.
-4. **Decisión de producto** pendiente: describir (vigente) o ordenar COMPRAR / VENDER / MANTENER
-   ([especificación 001](specs/001-radar-nucleo/spec.md#aclaraciones-pendientes)).
+4. **Pendientes del concilio:** VENDER por banda en modo sombra, regla de 5 días en SIN SEÑAL y
+   divergencia BCCh (fase 2). Ver [tareas 003](specs/003-motor-acciones/tasks.md).
