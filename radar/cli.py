@@ -188,6 +188,14 @@ def cmd_prueba(_: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_bot(args: argparse.Namespace) -> int:
+    from .bot import ciclo
+
+    atendidos = ciclo(args.una_vez)
+    print(f"consultas atendidas: {atendidos}")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(prog="radar", description=__doc__)
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -200,6 +208,9 @@ def main(argv: list[str] | None = None) -> int:
         sp.set_defaults(f=f)
     sub.add_parser("investigar", help="walk-forward: diseño hasta 2019, prueba desde 2020").set_defaults(f=cmd_investigar)
     sub.add_parser("prueba-telegram", help="envía un mensaje de prueba").set_defaults(f=cmd_prueba)
+    sp = sub.add_parser("bot", help="responde comandos de Telegram (público)")
+    sp.add_argument("--una-vez", action="store_true", help="atiende lo pendiente y termina (GitHub Actions)")
+    sp.set_defaults(f=cmd_bot)
     sp = sub.add_parser("bcch", help="API del Banco Central: prueba de conexión o catálogo de series")
     sp.add_argument("accion", choices=["prueba", "catalogo"])
     sp.add_argument("--frecuencia", default="DAILY", choices=["DAILY", "MONTHLY", "QUARTERLY", "ANNUAL"])
