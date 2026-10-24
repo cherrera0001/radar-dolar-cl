@@ -13,6 +13,14 @@ from .fuentes.base import FuenteError
 ANIO_INICIO = 2012  # historia suficiente para ventanas de 2 años + backtest de ~12 años
 
 
+def _hasta(puntos, hoy: date):
+    """Descarta datos con fecha posterior a hoy: no se pueden haber observado.
+
+    mindicador.cl devolvió un dólar fechado 2026-10-26 el 2026-10-24.
+    """
+    return [p for p in puntos if p.fecha <= hoy]
+
+
 @dataclass
 class Resultado:
     cambios: dict[str, int] = field(default_factory=dict)
@@ -36,7 +44,7 @@ def actualizar(hoy: date | None = None, base: Path = almacen.DIR_SERIES) -> Resu
             r.errores.append(str(e))
             r.fallidas.add(serie)
             continue
-        r.cambios[serie] = almacen.guardar(puntos, base).get(serie, 0)
+        r.cambios[serie] = almacen.guardar(_hasta(puntos, hoy), base).get(serie, 0)
 
     for serie in fred.SERIES:
         try:
@@ -45,5 +53,5 @@ def actualizar(hoy: date | None = None, base: Path = almacen.DIR_SERIES) -> Resu
             r.errores.append(str(e))
             r.fallidas.add(serie)
             continue
-        r.cambios[serie] = almacen.guardar(puntos, base).get(serie, 0)
+        r.cambios[serie] = almacen.guardar(_hasta(puntos, hoy), base).get(serie, 0)
     return r

@@ -109,13 +109,30 @@ def resumen(a: dict, bt: ResultadoBacktest | None, avisos: list[str], prueba: li
     return "\n".join(partes)
 
 
-def alerta(a: dict, anterior: str | None) -> str:
+def valores_senales(fila: pd.Series) -> dict[str, float]:
+    """Puntaje de cada señal, guardado en estado.json para explicar la siguiente alerta."""
+    return {k: round(float(fila[k]), 3) for k in DEFINICIONES if _ok(fila.get(k))}
+
+
+def que_movio(fila: pd.Series, previas: dict[str, float] | None) -> list[str]:
+    """Señales que cambiaron al menos 0,1 desde la corrida anterior."""
+    out = []
+    for nombre, d in DEFINICIONES.items():
+        ahora, antes = fila.get(nombre), (previas or {}).get(nombre)
+        if _ok(ahora) and _ok(antes) and abs(ahora - antes) >= 0.1:
+            out.append(f" ↳ {d.titulo}: {num(antes)} → {num(ahora)}")
+    return out
+
+
+def alerta(a: dict, anterior: str | None, previas: dict[str, float] | None = None) -> str:
+    movio = que_movio(a["fila"], previas)
     return "\n".join([
         f"{ICONO[a['estado']]} Radar Dólar: {anterior or '—'} → {a['estado']}",
         f"Dólar observado ${num(a['precio'])} ({a['fecha']}) · puntaje "
         f"{'+' if a['compuesto'] >= 0 else '−'}{num(abs(a['compuesto']))}" if _ok(a["compuesto"]) else "",
         CONTEXTO[a["estado"]],
         "",
+        *((["Qué cambió desde la última corrida:", *movio, ""]) if movio else []),
         *lineas_senales(a["fila"]),
         "",
         REGLA,

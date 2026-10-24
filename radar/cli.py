@@ -114,7 +114,7 @@ def cmd_alerta(args: argparse.Namespace) -> int:
     anterior = est.get("estado")
     mensajes = []
     if a["estado"] != anterior:
-        mensajes.append(reporte.alerta(a, anterior))
+        mensajes.append(reporte.alerta(a, anterior, est.get("senales")))
     if est.get("avisos_pendientes"):
         mensajes.append("⚠️ Radar Dólar · salud de fuentes\n" + "\n".join(est["avisos_pendientes"]))
     if not mensajes:
@@ -122,7 +122,8 @@ def cmd_alerta(args: argparse.Namespace) -> int:
     for m in mensajes:
         _salida(m, args.enviar)
     # Se guarda DESPUÉS de enviar: si Telegram falla, el próximo run vuelve a avisar.
-    est.update({"estado": a["estado"], "fecha": a["fecha"], "compuesto": a["compuesto"], "avisos_pendientes": []})
+    est.update({"estado": a["estado"], "fecha": a["fecha"], "compuesto": a["compuesto"],
+                "senales": reporte.valores_senales(a["fila"]), "avisos_pendientes": []})
     est.pop("errores_avisados", None)
     reporte.guardar_estado(est)
     return 0
