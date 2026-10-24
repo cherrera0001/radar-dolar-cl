@@ -1,13 +1,14 @@
 # Radar Dólar Chile
 
-Señales para **ahorrar en dólares a largo plazo desde Chile**: cada día hábil revisa el dólar
-observado, el cobre, el dólar global, las tasas y la aversión al riesgo; los lunes envía un
-resumen a Telegram y avisa cuando cambia el semáforo (🟢 BARATO · 🟡 NORMAL · 🔴 CARO).
+Describe si el **dólar observado está barato, normal o caro** frente a lo que lo mueve (cobre, dólar global,
+tasas y aversión al riesgo), para quien ahorra en dólares a largo plazo desde Chile.
 
-Corre sin servidores en **GitHub Actions**; los datos se versionan como CSV en `data/series/`.
+Lo consultas en **Telegram** (`/estado`, `/historia`, `/prediccion`, `/grafico`…) o en el **panel** de
+Streamlit. Todo corre en **GitHub Actions**, sin servidor propio; los datos son CSV versionados en
+`data/series/`.
 
-> Herramienta personal y educativa. **No es asesoría financiera.** Si se ofreciera a terceros como
-> recomendación de inversión, revisar la Ley Fintec (21.521) y el registro de asesores ante la CMF.
+> **No es asesoría financiera.** Describe el pasado y no garantiza el futuro. Si se ofreciera a terceros
+> como recomendación de inversión, revisar la Ley Fintec (21.521) y el registro de asesores ante la CMF.
 
 ## Qué recomienda (y por qué)
 
@@ -24,9 +25,22 @@ Cifras con fechas de mercado alineadas y decisión con la señal del día anteri
 Lo que sí ahorra con certeza es el **canal de compra**: ~2,5% en la pizarra de un banco vs ~0,5%
 en canales de bajo spread ([estado del arte](docs/ESTADO_DEL_ARTE.md)).
 
+> **Pendiente de decisión:** un concilio del 2026-10-23 autorizó emitir COMPRAR / VENDER / MANTENER.
+> Es incompatible con lo anterior. Hasta resolverlo, esa salida no se implementa
+> ([especificación 001, aclaraciones](specs/001-radar-nucleo/spec.md#aclaraciones-pendientes)).
+
 Detalle en [docs/INVESTIGACION.md](docs/INVESTIGACION.md) y [docs/METODOLOGIA.md](docs/METODOLOGIA.md).
-Nuevas señales (p. ej. flujos del Banco Central) se evalúan con `radar investigar` antes de cambiar
-esta recomendación.
+Nuevas señales se evalúan con `radar investigar` antes de cambiar esta recomendación.
+
+## Consultar (público)
+
+| Dónde | Cómo |
+|---|---|
+| **Telegram** | Escribe `/ayuda` al bot. Responde en hasta ~30 minutos. Detalle en [docs/bot.md](docs/bot.md). |
+| **Panel** | Streamlit: calibración, radar frente a DCA, estacionalidad, correlación y salud de datos. URL en `DASHBOARD_URL`. |
+| **Datos** | `data/series/*.csv`, o `/datos <serie>` en Telegram. |
+
+No hace falta cuenta ni identificarse. El bot no guarda quién escribe.
 
 ## Uso local
 
@@ -39,7 +53,10 @@ radar backtest          # radar vs DCA y cada señal por separado
 radar investigar        # walk-forward: parámetros con 2012-2019, resultado en 2020-2026
 radar resumen           # texto del resumen semanal (--enviar para Telegram)
 radar alerta            # aviso solo si cambió el semáforo (--enviar)
-radar prueba-telegram   # verifica el bot
+radar prueba-telegram   # verifica el bot de alertas
+radar bot               # atiende comandos de Telegram en continuo (Ctrl+C para salir)
+radar bot --una-vez     # atiende lo pendiente y termina (lo que usa Actions)
+streamlit run streamlit_app.py   # panel en http://localhost:8501
 pytest -q && ruff check radar tests
 ```
 
@@ -49,9 +66,24 @@ pytest -q && ruff check radar tests
 |---|---|---|
 | `diario.yml` | Lun–vie 12:00 UTC | Actualiza series, avisa si cambia el semáforo, versiona `data/` |
 | `semanal.yml` | Lunes 12:30 UTC | Resumen + backtest a Telegram, versiona `data/` y `reports/` |
+| `bot.yml` | Cada 30 min | Atiende consultas de Telegram, versiona el offset `data/bot.json` |
 | `ci.yml` | Push/PR | ruff + pytest |
 
-Secretos del repo: `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` y, en la fase 2, `BCCH_USER` / `BCCH_PASS`.
+**Requisito:** Actions debe estar habilitado y con cuota de minutos disponible en la cuenta
+(*Settings → Billing & plans*). Si la facturación falla, GitHub no arranca ningún job; el radar deja de
+actualizar datos y de responder.
+
+Secretos del repo: `TELEGRAM_BOT_TOKEN` (bot y alertas), `TELEGRAM_CHAT_ID` (alertas al dueño) y,
+en la fase 2, `BCCH_USER` / `BCCH_PASS`.
+Variables del repo (opcional): `DASHBOARD_URL`, la URL pública del panel que muestra `/ayuda`.
+
+## Documentación de diseño
+
+- [Constitución](.specify/memory/constitution.md): principios que todo cambio respeta.
+- [Especificación 001 · núcleo](specs/001-radar-nucleo/spec.md): qué hace el radar, historias de usuario y criterios.
+- [Especificación 002 · bot y panel públicos](specs/002-bot-y-panel-publicos/spec.md), con
+  [plan y tareas](specs/002-bot-y-panel-publicos/tasks.md).
+- [Concilios](councils/README.md): decisiones de producto y su registro.
 
 ## Fuentes
 
@@ -67,3 +99,15 @@ Secretos del repo: `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` y, en la fase 2, `BC
 
 Cada fuente valida **el cuerpo** de la respuesta (estructura, fechas, rangos de cordura), no el
 código HTTP: un `200` con un error dentro es la forma más común en que una integración miente.
+
+## Hoja de ruta
+
+1. **Fase 2 — Banco Central (API BDE):** exportaciones de cobre, flujos cambiarios y series oficiales;
+   contraste del dólar observado mindicador vs BCCh.
+2. **Investigación con validación walk-forward** (#9, hecho): `radar investigar`. La hipótesis de acumular
+   pesos cuando el dólar está caro (#10) fue **rechazada** fuera de muestra; ver
+   [INVESTIGACION.md](docs/INVESTIGACION.md).
+3. **Respuesta inmediata en Telegram:** hoy el bot responde en hasta ~30 minutos (cron en Actions).
+   Opción: un Cloudflare Worker gratuito que dispare el workflow al recibir el mensaje.
+4. **Decisión de producto** pendiente: describir (vigente) o ordenar COMPRAR / VENDER / MANTENER
+   ([especificación 001](specs/001-radar-nucleo/spec.md#aclaraciones-pendientes)).
