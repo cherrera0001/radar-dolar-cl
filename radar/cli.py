@@ -10,7 +10,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from . import almacen, investigacion, reporte, salud, telegram
+from . import almacen, decision, envios, investigacion, reporte, salud, telegram
 from .actualizar import actualizar
 from .backtest import backtest
 from .fuentes import bcentral
@@ -108,24 +108,47 @@ def cmd_resumen(args: argparse.Namespace) -> int:
 
 
 def cmd_alerta(args: argparse.Namespace) -> int:
-    """Avisa solo si el semáforo cambió, o si la salud de fuentes cambió (avisos pendientes)."""
+    """Avisa solo de salud de fuentes. El semáforo no genera avisos (concilio 2026-10-23_220000: sin push)."""
     _, _, a = _cargar()
     est = reporte.leer_estado()
-    anterior = est.get("estado")
-    mensajes = []
-    if a["estado"] != anterior:
-        mensajes.append(reporte.alerta(a, anterior, est.get("senales")))
-    if est.get("avisos_pendientes"):
-        mensajes.append("⚠️ Radar Dólar · salud de fuentes\n" + "\n".join(est["avisos_pendientes"]))
-    if not mensajes:
-        print(f"Sin cambios: {a['estado']} ({a['fecha']}).")
-    for m in mensajes:
-        _salida(m, args.enviar)
-    # Se guarda DESPUÉS de enviar: si Telegram falla, el próximo run vuelve a avisar.
+    avisos = est.get("avisos_pendientes") or []
+    if not avisos:
+        print(f"Sin avisos de salud: {a['estado']} ({a['fecha']}).")
+    else:
+        texto = "⚠️ Radar Dólar · salud de fuentes\\n" + "\\n".join(avisos)
+        if not args.enviar:
+            print(texto)
+            return 0  # sin envío no se marcan como enviados
+        if envios.enviar_una_vez("salud", texto, telegram.enviar):
+            print("[enviado a Telegram]")
+        else:
+            print("[sin envío: el mismo aviso ya se envió]")
+    # Se guarda DESPUÉS de enviar: si Telegram falla, el próximo run vuelve a intentar.
     est.update({"estado": a["estado"], "fecha": a["fecha"], "compuesto": a["compuesto"],
                 "senales": reporte.valores_senales(a["fila"]), "avisos_pendientes": []})
     est.pop("errores_avisados", None)
     reporte.guardar_estado(est)
+    return 0
+
+
+def cmd_accion(args: argparse.Namespace) -> int:
+    """Instrucción del plan del dueño. Solo en la ventana de compra (días 1 a 5) y una vez por mes."""
+    hoy = date.today()
+    if hoy.day not in decision.VENTANA_COMPRA:
+        print(f"Fuera de la ventana de compra (días 1 a 5): hoy {hoy:%d-%m} no hay instrucción.")
+        return 0
+    _, _, a = _cargar()
+    instr = decision.decidir(decision.cargar_perfil(), hoy, decision.frescura_ok(hoy))
+    texto = decision.texto(instr, hoy, a["precio"], a["fecha"], a["estado"])
+    if not args.enviar:
+        print(texto)
+        return 0
+    # La clave es el mes; el contenido es la instrucción (no los precios): no se repite sin cambio.
+    if envios.enviar_una_vez(f"accion:{hoy:%Y-%m}", f"{instr.accion}|{instr.codigo}",
+                             lambda _: telegram.enviar(texto)):
+        print(f"[instrucción {instr.accion} enviada al dueño]")
+    else:
+        print(f"[sin envío: {instr.accion} ya se envió este mes]")
     return 0
 
 
@@ -208,6 +231,9 @@ def main(argv: list[str] | None = None) -> int:
         sp.set_defaults(f=f)
     sub.add_parser("investigar", help="walk-forward: diseño hasta 2019, prueba desde 2020").set_defaults(f=cmd_investigar)
     sub.add_parser("prueba-telegram", help="envía un mensaje de prueba").set_defaults(f=cmd_prueba)
+    sp = sub.add_parser("accion", help="instrucción mensual del plan (solo al dueño, días 1 a 5)")
+    sp.add_argument("--enviar", action="store_true", help="envía al chat del dueño, una vez por mes")
+    sp.set_defaults(f=cmd_accion)
     sp = sub.add_parser("bot", help="responde comandos de Telegram (público)")
     sp.add_argument("--una-vez", action="store_true", help="atiende lo pendiente y termina (GitHub Actions)")
     sp.set_defaults(f=cmd_bot)

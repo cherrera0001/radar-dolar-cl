@@ -139,6 +139,25 @@ def alerta(a: dict, anterior: str | None, previas: dict[str, float] | None = Non
     ])
 
 
+def contexto_publico(a: dict, avisos: list[str]) -> str:
+    """Para lectores públicos: semáforo sin colores, rotulado como contexto y nunca como instrucción."""
+    fila = a["fila"]
+    lineas = [
+        f"Contexto (no es señal) · datos al {a['fecha']}",
+        f"Dólar observado: ${num(a['precio'])}",
+        f"Semáforo: {a['estado']} · puntaje "
+        f"{'+' if a['compuesto'] >= 0 else '−'}{num(abs(a['compuesto']))}" if _ok(a["compuesto"]) else "Semáforo: sin datos",
+        CONTEXTO[a["estado"]],
+        "",
+        "Señales (+ barato / − caro):",
+        *lineas_senales(fila),
+    ]
+    if avisos:
+        lineas += ["", "⚠️ " + "\n⚠️ ".join(avisos)]
+    lineas += ["", REGLA, PIE]
+    return "\n".join(lineas)
+
+
 def leer_estado(ruta: Path = ARCHIVO_ESTADO) -> dict:
     return json.loads(ruta.read_text(encoding="utf-8")) if ruta.exists() else {}
 

@@ -73,10 +73,10 @@ def _ayuda(_args: str) -> Respuesta:
     return Respuesta("\n".join(lineas))
 
 
-@comando("estado", "semáforo de hoy, puntaje y señales")
+@comando("estado", "contexto del semáforo hoy (no es señal)")
 def _estado(_args: str) -> Respuesta:
     _, _, a = _datos()
-    return Respuesta(reporte.resumen(a, None, _avisos()))
+    return Respuesta(reporte.contexto_publico(a, _avisos()))
 
 
 @comando("historia", "qué hizo el dólar después de cada estado")
