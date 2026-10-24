@@ -111,7 +111,13 @@
     "Visibilidad del repo: VERIFICADA privada (creado con `gh repo create --private` el 2026-10-23). El riesgo de exponer perfiles en data/ o reports/ persiste ante un cambio de visibilidad o un colaborador: se mantiene el control de CI.",
     "El bot con lectores (TELEGRAM_READERS, /autorizar) es el del monitor del PC (otro token); el bot del radar (C4A_Finance_Bot) hoy envía a un único chat. La trampa aplica en cuanto se le agreguen lectores."
   ],
-  "status": "decided_but_unauthorized",
-  "human_adversarial_pass": null,
+  "status": "decided_authorized",
+  "human_adversarial_pass": {
+    "by": "cherrera0001 (dueño)",
+    "ts": "2026-10-23",
+    "verdict": "authorized",
+    "statement": "autorizo la decisión del concilio",
+    "modifications": []
+  },
   "outcome_tracked": false
 }

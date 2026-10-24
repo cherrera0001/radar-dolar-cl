@@ -62,4 +62,5 @@ archivo de perfil bajo `data/` o `reports/`. Secundario: la única ganancia segu
 descansa en una foto de precios de un solo día; #25 alerta si el p90 del costo de un canal supera
 1% durante 5 días.
 
-**Estado:** `decided_but_unauthorized`: requiere la autorización del dueño (`human_adversarial_pass`).
+**Estado:** `decided_authorized`: el dueño autorizó la decisión sin modificaciones el 2026-10-23
+(`human_adversarial_pass`).

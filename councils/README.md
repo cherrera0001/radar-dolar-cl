@@ -18,6 +18,6 @@ councils/
 
 | Timestamp | Tema | Decisión | Estado |
 |---|---|---|---|
-| 2026-10-23_220000 | ¿Cómo emite el radar COMPRAR / VENDER / MANTENER? | Instrucciones del plan del usuario (SIN SEÑAL > VENDER por necesidad > MANTENER > COMPRAR cuota completa en canal barato); moduladores de flujo y VENDER por banda en sombra hasta pasar el protocolo de validación | `decided_but_unauthorized` |
+| 2026-10-23_220000 | ¿Cómo emite el radar COMPRAR / VENDER / MANTENER? | Instrucciones del plan del usuario (SIN SEÑAL > VENDER por necesidad > MANTENER > COMPRAR cuota completa en canal barato); moduladores de flujo y VENDER por banda en sombra hasta pasar el protocolo de validación | `decided_authorized` (dueño, 2026-10-23) |
 
 Antes de cada concilio nuevo, revisar `dissents/` por si alguna `reactivation_condition` se cumplió.
