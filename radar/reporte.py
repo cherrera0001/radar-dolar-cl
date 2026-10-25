@@ -20,8 +20,8 @@ CONTEXTO = {
     "CARO": "El dólar está caro frente a lo que lo mueve (cobre, dólar global, tasas).",
     "SIN DATOS": "Sin datos suficientes para describir el precio hoy.",
 }
-REGLA = ("Recomendación: compra tu cuota completa cada mes (DCA). El semáforo describe el precio; "
-         "esperar o adelantar compras no le ha ganado a DCA fuera de muestra (docs/INVESTIGACION.md).")
+REGLA = ("Contexto: el semáforo describe el precio. Fuera de muestra, no ha superado a comprar "
+         "una cuota fija cada mes (DCA). Detalle en docs/INVESTIGACION.md.")
 PIE = "Fuentes: mindicador.cl (dólar observado, cobre, TPM) y FRED (DXY, Fed, VIX). Herramienta personal; no es asesoría financiera."
 
 
