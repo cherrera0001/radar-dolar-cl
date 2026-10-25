@@ -21,7 +21,7 @@ CONTEXTO = {
     "SIN DATOS": "Sin datos suficientes para describir el precio hoy.",
 }
 REGLA = ("Contexto: el semáforo describe el precio. Fuera de muestra, no ha superado a comprar "
-         "una cuota fija cada mes (DCA). Detalle en docs/INVESTIGACION.md.")
+         "una cuota fija cada mes (DCA). Detalle: https://github.com/cherrera0001/radar-dolar-cl/blob/main/docs/INVESTIGACION.md")
 PIE = ("Fuentes: mindicador.cl (dólar observado, cobre, TPM) y FRED (índice amplio del dólar DTWEXBGS, "
        "Fed funds, VIX). Herramienta personal; no es asesoría financiera.")
 

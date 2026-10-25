@@ -1,4 +1,5 @@
 import json
+import re
 
 import numpy as np
 import pandas as pd
@@ -121,3 +122,10 @@ def test_escucha_con_plazo_termina_sin_mensajes(tmp_path, monkeypatch):
     monkeypatch.setattr(telegram, "actualizaciones", vacio)
     assert bot.ciclo(una_vez=False, durante=0.05) == 0
     assert llamadas and all(e == bot.ESPERA_LARGA for e in llamadas)
+
+
+def test_textos_del_bot_no_tienen_rutas_relativas():
+    for comando in ["ayuda", "estado", "historia", "prediccion", "backtest", "salud"]:
+        texto = bot.responder({"text": "/" + comando}).texto
+        assert not re.search(r"(?<!main/)(docs|reports)/", texto), comando
+        assert "](" not in texto
