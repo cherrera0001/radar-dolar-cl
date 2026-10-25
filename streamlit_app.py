@@ -59,53 +59,44 @@ nombre_dca = investigacion.DCA.nombre
 nombre_radar = walk["elegida"].nombre
 
 st.title("Radar del dólar en Chile")
-st.caption(
-    f"Cierre observado {fecha_obs:%d-%m-%Y} · semáforo con datos hasta {actual['fecha']} (rezago de un día hábil). "
-    "Descriptivo: muestra lo que pasó, no lo que va a pasar."
-)
+st.caption(f"Cierre del {fecha_obs:%d-%m-%Y}. Describe lo que pasó; no predice.")
 
 c1, c2, c3 = st.columns(3)
-c1.metric("Dólar observado", f"${reporte.num(precio_obs)}", help=f"Cierre del {fecha_obs:%d-%m-%Y}")
-c2.metric("Estado del semáforo", actual["estado"])
-c3.metric("Puntaje compuesto", reporte.num(actual["compuesto"]) if np.isfinite(actual["compuesto"]) else "sin datos",
-          help="Escala −1 (caro) a +1 (barato). Entre −0,25 y +0,25 el estado es NORMAL.")
-st.info(f"**Lectura de hoy:** {reporte.CONTEXTO[actual['estado']]}")
+c1.metric("Dólar", f"${reporte.num(precio_obs)}")
+c2.metric("Semáforo", actual["estado"], help="BARATO, NORMAL o CARO según cobre, dólar global y tasas.")
+c3.metric("Puntaje", reporte.num(actual["compuesto"]) if np.isfinite(actual["compuesto"]) else "sin datos",
+          help="Entre −1 (caro) y +1 (barato). Entre −0,25 y +0,25 es NORMAL.")
+st.warning(
+    "**Este tablero no dice si comprar, vender o mantener.** Esa decisión depende de tu plan personal "
+    "(colchón, necesidades, peso del dólar en tu patrimonio), no del precio."
+)
 
 t1, t2, t3, t4, t5 = st.tabs(["Calibración", "Radar vs DCA", "Estacionalidad", "Correlación", "Salud de datos"])
 
 
 # ---------------------------------------------------------------- 1. Calibración
 with t1:
-    st.subheader("¿Qué hizo el dólar después de cada estado?")
-    st.markdown(
-        "**Qué muestra:** la proporción de días en que el dólar terminó más alto N meses después, según el estado "
-        "del semáforo ese día, comparada con cualquier día (línea punteada)."
-    )
-    horizonte = st.radio("Horizonte", list(metricas.HORIZONTES), horizontal=True, index=1, key="hz_cal")
+    st.subheader("Cuando el semáforo estuvo en cada estado, ¿el dólar subió después?")
+    horizonte = st.radio("Plazo", list(metricas.HORIZONTES), horizontal=True, index=1, key="hz_cal")
     cal = metricas.calibracion(df["usdclp"], senales["compuesto"])
     fila_h = cal[cal["horizonte"] == horizonte]
     base = fila_h[fila_h["estado"] == "TODOS"].iloc[0]
     por_estado = fila_h[fila_h["estado"] != "TODOS"]
 
-    # Lectura generada con las cifras del horizonte elegido
-    lineas = []
-    for _, r in por_estado.iterrows():
-        lineas.append(
-            f"- **{r['estado'].capitalize()}**: el dólar subió en {pct(r['sube'], 0)} de los días, "
-            f"{pp((r['sube'] - base['sube']) * 100)} frente a cualquier día ({int(r['episodios'])} episodios)."
+    caro = por_estado[por_estado["estado"] == "CARO"]
+    if not caro.empty:
+        st.markdown(
+            f"**En {horizonte}:** tras un día CARO, el dólar subió en {pct(caro.iloc[0]['sube'], 0)} de los casos. "
+            f"Cualquier día: {pct(base['sube'], 0)}."
         )
-    st.markdown("\n".join(lineas))
     rango = (por_estado["sube"].max() - por_estado["sube"].min()) * 100
-    episodios_bajos = int(por_estado["episodios"].min())
     if rango < UMBRAL_SEPARACION_PP:
-        conclusion = (f"Los tres estados se separan menos de {UMBRAL_SEPARACION_PP} puntos: "
-                      "en este horizonte el semáforo no distingue mejor que cualquier día.")
+        st.info("Los tres estados dan resultados casi iguales. El semáforo no cambia la probabilidad de subida.")
     else:
-        conclusion = (f"Los estados se separan {reporte.num(rango, 0)} puntos entre el más alto y el más bajo.")
+        st.info(f"Los estados se separan {reporte.num(rango, 0)} puntos. Revisa cuántos casos hay abajo.")
+    episodios_bajos = int(por_estado["episodios"].min())
     if episodios_bajos < EPISODIOS_MINIMOS:
-        conclusion += (f" Ojo: el estado con menos casos tiene {episodios_bajos} episodios; "
-                       "con tan pocos, la diferencia puede ser azar.")
-    st.success(conclusion)
+        st.warning(f"Pocos casos: el estado con menos tiene {episodios_bajos} episodios. Puede ser azar.")
 
     # Una sola fuente por capa: Altair no admite capas con datos distintos dentro de un facet.
     barras = alt.Chart().transform_filter(alt.datum.estado != "TODOS").mark_bar().encode(
@@ -121,7 +112,7 @@ with t1:
     st.altair_chart(grafico, width="content")
 
     # Histograma de retornos futuros por estado: la forma completa, no solo el porcentaje
-    st.markdown("**Distribución de los retornos** (histograma por estado, mismo horizonte)")
+    st.caption("Histograma: cada barra cuenta los días en que el dólar se movió en ese rango en el plazo elegido.")
     dias_h = metricas.HORIZONTES[horizonte]
     j = pd.DataFrame({
         "estado": senales["compuesto"].dropna().map(estado),
@@ -136,20 +127,6 @@ with t1:
     )
     cero = alt.Chart(pd.DataFrame({"x": [0]})).mark_rule(color="#000").encode(x="x:Q")
     st.altair_chart((hist + cero).properties(height=280), width="stretch")
-    medianas = j.groupby("estado")["retorno"].median()
-    if not medianas.empty:
-        st.caption("Mediana del retorno por estado: " + " · ".join(
-            f"{e.lower()} {pct(medianas[e])}" for e in ESTADOS if e in medianas.index))
-
-    st.markdown(
-        "**Cómo leerlo:** si las barras de un estado quedan sobre la línea punteada, ese estado vino antes de alzas "
-        "con más frecuencia que cualquier día. Un histograma con colas parecidas indica que el estado cambia la "
-        "frecuencia de alzas, pero no el tamaño típico del movimiento."
-    )
-    st.warning(
-        "**Límite:** cada día cuenta como caso, pero días vecinos comparten ventana de retorno. "
-        "Los episodios (días ÷ horizonte) son el número realista de casos independientes."
-    )
     with st.expander("Tabla completa"):
         st.dataframe(
             cal.assign(sube=lambda d: (d["sube"] * 100).round(1), mediana=lambda d: (d["mediana"] * 100).round(2),
@@ -161,11 +138,8 @@ with t1:
 
 # ---------------------------------------------------------------- 2. Radar vs DCA
 with t2:
-    st.subheader("Precio medio pagado: DCA vs radar (fuera de muestra, desde 2020)")
-    st.markdown(
-        "**Qué muestra:** cuántos CLP pagaría por cada dólar quien compra según cada estrategia, mes a mes. "
-        "Para quien compra, **menor es mejor**. Los parámetros se eligieron con datos hasta 2019; el resto es prueba."
-    )
+    st.subheader("¿Comprar según el radar fue mejor que comprar una cuota fija cada mes?")
+    st.caption("Precio medio pagado por dólar desde 2020 (prueba fuera de muestra). Menor = mejor.")
     comp = metricas.comparacion_acumulada(preparado, walk["elegida"]).dropna(how="all")
     if comp.empty:
         st.info("Todavía no hay meses de prueba con compras.")
@@ -183,10 +157,10 @@ with t2:
         dif = ((comp[nombre_radar] / comp[nombre_dca] - 1) * 100).dropna()
         ultimo_mes = dif.index[-1]
         ganados = int((dif < 0).sum())
-        st.success(
-            f"**Lectura:** al cierre de {ultimo_mes:%m-%Y}, la estrategia elegida pagó {reporte.num(abs(dif.iloc[-1]), 2)}% "
-            f"{'más' if dif.iloc[-1] > 0 else 'menos'} por dólar que DCA (precio medio acumulado). "
-            f"En {ganados} de {len(dif)} meses su precio medio fue menor que el de DCA."
+        st.markdown(
+            f"**Hasta {ultimo_mes:%m-%Y}:** el radar pagó {reporte.num(abs(dif.iloc[-1]), 2)}% "
+            f"{'más' if dif.iloc[-1] > 0 else 'menos'} por dólar que DCA. "
+            f"Fue mejor en {ganados} de {len(dif)} meses."
         )
         barras_dif = alt.Chart(dif.rename("dif").rename_axis("mes").reset_index()).mark_bar().encode(
             x=alt.X("mes:T", title=None),
@@ -197,20 +171,13 @@ with t2:
         st.altair_chart(barras_dif, width="stretch")
         st.caption("Verde: el radar pagó menos que DCA ese mes. Rojo: pagó más.")
 
-    st.warning(
-        "**Límites:** no incluye spreads, comisiones ni deslizamiento. Diferencias de décimas de punto son del mismo "
-        "orden que un spread típico, así que esta comparación no basta para decidir. Tampoco es una prueba de que el "
-        "radar gane en el futuro."
-    )
+    st.warning("No incluye costos de cambio ni comisiones. Una diferencia de décimas de punto es menor que esos costos.")
 
 
 # ---------------------------------------------------------------- 3. Estacionalidad
 with t3:
-    st.subheader("Variación mensual del dólar por año")
-    st.markdown(
-        "**Qué muestra:** cuánto cambió el dólar entre el cierre de un mes y el del anterior. "
-        "Rojo = el dólar subió; azul = bajó."
-    )
+    st.subheader("¿Hay meses que el dólar suele subir o bajar?")
+    st.caption("Rojo = el dólar subió ese mes. Azul = bajó.")
     piv = metricas.estacional(df["usdclp"])
     anio_min, anio_max = int(piv.index.min()), int(piv.index.max())
     rango_anios = st.slider("Años a mostrar", anio_min, anio_max, (anio_min, anio_max), key="anios")
@@ -234,10 +201,9 @@ with t3:
     })
     mejor = resumen.loc[resumen["promedio"].idxmax()]
     peor = resumen.loc[resumen["promedio"].idxmin()]
-    st.success(
-        f"**Lectura:** en promedio, {mejor['mes']} es el mes de mayor alza ({reporte.num(mejor['promedio'], 2)}%) "
-        f"y {peor['mes']} el de mayor baja ({reporte.num(peor['promedio'], 2)}%). "
-        f"{mejor['mes']} subió en {reporte.num(mejor['años_con_alza'], 0)}% de los años."
+    st.markdown(
+        f"**Mes que más sube en promedio:** {mejor['mes']} ({reporte.num(mejor['promedio'], 1)}%). "
+        f"**Mes que más baja:** {peor['mes']} ({reporte.num(peor['promedio'], 1)}%)."
     )
     barras_m = alt.Chart(resumen).mark_bar().encode(
         x=alt.X("mes:N", sort=MESES, title=None),
@@ -247,30 +213,22 @@ with t3:
                  alt.Tooltip("años_con_alza:Q", format=".0f", title="% años con alza"), "años"],
     ).properties(height=220)
     st.altair_chart(barras_m, width="stretch")
-    st.warning(
-        "**Límites:** cada mes tiene pocos años de historia (ver `años`). Un solo año extremo mueve el promedio; "
-        "por eso conviene mirar también el porcentaje de años con alza. Un patrón mensual no es una regla de compra."
-    )
+    st.warning("Son pocos años por mes. Un año extremo cambia el promedio. No es una regla para operar.")
 
 
 # ---------------------------------------------------------------- 4. Correlación
 with t4:
-    st.subheader("Correlación móvil de 1 año con el dólar")
-    st.markdown(
-        "**Qué muestra:** cuánto se mueve el dólar junto con el cobre y con el índice amplio del dólar global, "
-        "medido sobre retornos diarios en ventanas de un año. Valores cercanos a +1 o −1 = movimiento conjunto fuerte; "
-        "cerca de 0 = sin relación lineal."
-    )
+    st.subheader("¿El dólar se mueve junto con el cobre y el dólar global?")
+    st.caption("Va de −1 a +1. Cerca de 0 = no se mueven juntos. Medido en ventanas de un año.")
     corr = metricas.correlacion(df)
     if corr.empty:
         st.info("Faltan datos para calcular la correlación.")
     else:
         hoy_c = corr.iloc[-1]
-        med_c = corr.median()
-        st.success(
-            f"**Lectura:** hoy el dólar se mueve con el cobre con correlación {reporte.num(hoy_c['cobre'], 2)} "
-            f"(mediana histórica {reporte.num(med_c['cobre'], 2)}) y con el dólar global con {reporte.num(hoy_c['dxy'], 2)} "
-            f"(mediana {reporte.num(med_c['dxy'], 2)})."
+        sentido = "en sentido contrario" if hoy_c["cobre"] < 0 else "en el mismo sentido"
+        st.markdown(
+            f"**Hoy:** el dólar y el cobre van {sentido} (correlación {reporte.num(hoy_c['cobre'], 2)}). "
+            f"Con el dólar global: {reporte.num(hoy_c['dxy'], 2)}."
         )
         largo_c = corr.rename_axis("fecha").reset_index().melt("fecha", var_name="serie", value_name="correlación")
         lineas_c = alt.Chart(largo_c).mark_line().encode(
@@ -292,19 +250,13 @@ with t4:
         )
         ajuste = puntos.transform_regression("cobre_lb", "usdclp").mark_line(color="#c62828", size=2)
         st.altair_chart((puntos + ajuste).properties(height=300), width="stretch")
-    st.warning(
-        "**Límites:** correlación no es causalidad. Los retornos diarios se mueven con ruido de publicación y de "
-        "horario (el cobre se fecha con dos días de desfase, ver `almacen.py`)."
-    )
+    st.warning("Correlación no es causa. Mirar juntos no significa que uno explique al otro.")
 
 
 # ---------------------------------------------------------------- 5. Salud de datos
 with t5:
-    st.subheader("Estado de las fuentes")
-    st.markdown(
-        "**Qué muestra:** qué tan recientes son los datos de cada serie frente a su antigüedad máxima. "
-        "Si una fuente está atrasada, el semáforo no debería leerse con confianza."
-    )
+    st.subheader("¿Los datos están al día?")
+    st.caption("Si una fuente está atrasada, el semáforo no es confiable ese día.")
     salud = metricas.salud(date.today()).copy()
     salud["límite días"] = salud["serie"].map(almacen.antiguedad_max)
     salud["estado"] = np.where(salud["dias_sin_dato"].isna(), "sin datos",
