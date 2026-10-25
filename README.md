@@ -48,7 +48,7 @@ No hace falta cuenta ni identificarse. El bot no guarda quién escribe.
 
 ```bash
 python3 -m venv .venv && . .venv/bin/activate
-pip install -e ".[dev]"
+pip install -e ".[dev,dashboard]"
 radar actualizar        # descarga series (la primera vez rellena desde 2012, ~3 min)
 radar senales           # estado actual con explicación de cada señal
 radar backtest          # radar vs DCA y cada señal por separado
