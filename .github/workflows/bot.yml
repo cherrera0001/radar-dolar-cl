@@ -30,11 +30,16 @@ jobs:
           cache-dependency-path: pyproject.toml
       - run: pip install -e .
 
+      - name: Configurar git
+        run: |
+          git config user.name "radar-dolar[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
       - name: Escuchar Telegram (5,5 h)
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           DASHBOARD_URL: ${{ vars.DASHBOARD_URL }}
-        run: radar bot --durante 19800
+        run: radar bot --durante 19800 --publicar
 
       - name: Versionar offset (solo si cambió)
         if: always()

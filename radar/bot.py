@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import json
 import os
+import subprocess
 import sys
 import tempfile
 import time
@@ -219,7 +220,25 @@ def _guardar_offset(offset: int) -> None:
     ARCHIVO_BOT.write_text(json.dumps({"offset": offset}) + "\n", encoding="utf-8")
 
 
-def ciclo(una_vez: bool, durante: float = 0) -> int:
+def _publicar_offset() -> None:
+    """Versiona data/bot.json para que el progreso sea visible en el repo al instante.
+
+    Un commit por consulta. Si el push falla, el offset local queda y el siguiente push lo incluye.
+    """
+    try:
+        subprocess.run(["git", "add", str(ARCHIVO_BOT)], check=True)
+        if subprocess.run(["git", "diff", "--cached", "--quiet"]).returncode == 0:
+            return
+        subprocess.run(["git", "commit", "-q", "-m", f"bot: consulta respondida {time.strftime('%Y-%m-%d-%H%M%S')}"],
+                       check=True)
+        if subprocess.run(["git", "push", "-q"]).returncode != 0:
+            subprocess.run(["git", "pull", "--rebase", "-X", "theirs", "-q"], check=True)
+            subprocess.run(["git", "push", "-q"], check=True)
+    except (subprocess.CalledProcessError, OSError) as e:
+        print(f"no se pudo publicar el offset: {e}", file=sys.stderr)
+
+
+def ciclo(una_vez: bool, durante: float = 0, publicar: bool = False) -> int:
     """Atiende mensajes. Devuelve cuántos se respondieron.
 
     `durante` (segundos) hace long polling hasta ese plazo: así una corrida responde en segundos
@@ -255,6 +274,8 @@ def ciclo(una_vez: bool, durante: float = 0) -> int:
                 return atendidos
             atendidos += 1
             _guardar_offset(offset)
+            if publicar:
+                _publicar_offset()
             # Registro sin contenido: el log de Actions es público en este repo.
             print(f"update {u['update_id']}: /{interpretar(msg.get('text') or '')[0] or '-'} respondido")
             if atendidos >= MENSAJES_POR_CORRIDA:
