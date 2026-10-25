@@ -22,6 +22,8 @@ from dataclasses import dataclass, field
 from datetime import date
 from pathlib import Path
 
+import pandas as pd
+
 from . import almacen, grafico, metricas, reporte, telegram
 from .backtest import backtest
 from .cli import _avisos
@@ -63,65 +65,63 @@ def _datos():
     return df, senales, reporte.actual(senales, df["usdclp"])
 
 
+def _url() -> str:
+    return os.environ.get("DASHBOARD_URL", "").strip()
+
+
 @comando("ayuda", "lista de comandos")
 def _ayuda(_args: str) -> Respuesta:
-    lineas = ["Radar del dólar en Chile. Datos públicos (mindicador.cl y FRED).",
-              "Describe lo que pasó; no es asesoría financiera ni predice con certeza.", ""]
-    lineas += [f"/{nombre} — {descripcion}" for nombre, (_, descripcion) in COMANDOS.items()]
-    url = os.environ.get("DASHBOARD_URL", "").strip()
-    if url:
-        lineas += ["", f"Panel completo: {url}"]
+    lineas = ["Radar del dólar en Chile. Describe el pasado; no es asesoría financiera.", ""]
+    lineas += [f"/{nombre} · {descripcion}" for nombre, (_, descripcion) in COMANDOS.items()]
+    if _url():
+        lineas += ["", f"Panel: {_url()}"]
     return Respuesta("\n".join(lineas))
 
 
-@comando("estado", "contexto del semáforo hoy (no es señal)")
+@comando("estado", "semáforo de hoy y qué dicen los datos")
 def _estado(_args: str) -> Respuesta:
-    _, _, a = _datos()
-    return Respuesta(reporte.contexto_publico(a, _avisos(), almacen.ultimo_cierre()))
+    df, s, a = _datos()
+    bt = backtest(df["usdclp"], s["compuesto"])
+    rendimiento = (bt.precio_radar / bt.precio_dca - 1) * 100 if bt else None
+    return Respuesta(reporte.contexto_publico(a, almacen.ultimo_cierre(), rendimiento,
+                                              str(bt.desde) if bt else "", _url(), _avisos()))
 
 
-@comando("historia", "qué hizo el dólar después de cada estado")
+@comando("historia", "qué pasó 6 meses después de cada estado")
 def _historia(_args: str) -> Respuesta:
     df, s, _ = _datos()
     cal = metricas.calibracion(df["usdclp"], s["compuesto"])
-    lineas = ["Qué hizo el dólar N meses después de días con cada estado.",
-              "Porcentaje de días en que estaba más alto. Línea base = cualquier día.", ""]
-    for nombre in metricas.HORIZONTES:
-        lineas.append(nombre)
-        for _, f in cal[cal["horizonte"] == nombre].iterrows():
-            etiqueta = "Cualquier día (base)" if f["estado"] == "TODOS" else f["estado"].title()
-            lineas.append(f" · {etiqueta}: {f['sube'] * 100:.0f}% subió · {int(f['dias'])} días "
-                          f"(≈{int(f['episodios'])} episodios)")
-        lineas.append("")
-    lineas.append("Pocos episodios = poca evidencia.")
+    h = cal[cal["horizonte"] == "6 meses"]
+    base = h[h["estado"] == "TODOS"].iloc[0]
+    lineas = ["A 6 meses, el dólar subió en (según el estado del semáforo ese día):"]
+    for e in metricas.ESTADOS:
+        f = h[h["estado"] == e]
+        if not f.empty:
+            f = f.iloc[0]
+            lineas.append(f"· {e.title()}: {f['sube'] * 100:.0f}% de los días ({int(f['episodios'])} episodios)")
+    lineas.append(f"· Cualquier día: {base['sube'] * 100:.0f}%")
+    if int(h[h["estado"] != "TODOS"]["episodios"].min()) < 10:
+        lineas += ["", "Hay estados con pocos episodios: no es concluyente."]
     return Respuesta("\n".join(lineas))
 
 
-@comando("prediccion", "escenarios históricos desde hoy (rangos, no predicción)")
+@comando("prediccion", "rango histórico a 6 meses desde hoy (no es predicción)")
 def _prediccion(_args: str) -> Respuesta:
     df, s, a = _datos()
-    actual_estado = a["estado"]
-    if actual_estado not in metricas.ESTADOS:
-        return Respuesta("Sin estado actual: faltan datos para calcular escenarios.")
+    cierre = almacen.ultimo_cierre()
     cal = metricas.calibracion(df["usdclp"], s["compuesto"])
-    precio = a["precio"]
-    lineas = [f"Escenarios desde hoy · estado {actual_estado} · dólar ${reporte.num(precio)}",
-              "Lo que pasó en días parecidos del pasado. Es un rango histórico, no una predicción.", ""]
-    for nombre in metricas.HORIZONTES:
-        f = cal[(cal["horizonte"] == nombre) & (cal["estado"] == actual_estado)]
-        base = cal[(cal["horizonte"] == nombre) & (cal["estado"] == "TODOS")]
-        if f.empty:
-            continue
-        f = f.iloc[0]
-        lineas.append(f"En {nombre}: mediana ${reporte.num(precio * (1 + f['mediana']))}. "
-                      f"El 80% de los casos quedó entre ${reporte.num(precio * (1 + f['p10']))} "
-                      f"y ${reporte.num(precio * (1 + f['p90']))}.")
-        if not base.empty:
-            lineas.append(f"  Subió en {f['sube'] * 100:.0f}% de estos casos "
-                          f"(cualquier día: {base.iloc[0]['sube'] * 100:.0f}%). ≈{int(f['episodios'])} episodios.")
-    lineas += ["", "Si la probabilidad se parece a la de cualquier día, el estado no aporta información.",
-               "Esto describe el pasado; no garantiza el futuro."]
-    return Respuesta("\n".join(lineas))
+    f = cal[(cal["horizonte"] == "6 meses") & (cal["estado"] == a["estado"])]
+    if a["estado"] not in metricas.ESTADOS or f.empty or not cierre:
+        return Respuesta("No hay casos históricos para el estado de hoy.")
+    f, precio = f.iloc[0], cierre[1]
+    return Respuesta("\n".join([
+        f"Días {a['estado'].title()} como hoy, 6 meses después:",
+        f"· Mediana: ${reporte.num(precio * (1 + f['mediana']))}",
+        f"· En 8 de cada 10 casos, entre ${reporte.num(precio * (1 + f['p10']))} "
+        f"y ${reporte.num(precio * (1 + f['p90']))}",
+        "",
+        "Es lo que pasó en el pasado, no lo que va a pasar.",
+    ]))
 
 
 @comando("grafico", "último año del dólar con el semáforo")
@@ -132,32 +132,35 @@ def _grafico(_args: str) -> Respuesta:
     return Respuesta("Último año del dólar y del semáforo.", [("foto", ruta)])
 
 
-@comando("backtest", "radar vs DCA sobre toda la historia")
+@comando("backtest", "radar frente a cuota fija mensual, sin costos")
 def _backtest(_args: str) -> Respuesta:
     df, s, _ = _datos()
     bt = backtest(df["usdclp"], s["compuesto"])
     if not bt:
         return Respuesta("Historia insuficiente para el backtest.")
+    dif = (bt.precio_radar / bt.precio_dca - 1) * 100
     return Respuesta("\n".join([
-        f"Historia {bt.desde} a {bt.hasta} ({bt.meses} meses).",
-        f"DCA: {bt.usd_dca:,.2f} USD a ${bt.precio_dca:,.2f} por dólar.",
-        f"Radar: {bt.usd_radar:,.2f} USD a ${bt.precio_radar:,.2f} por dólar.",
-        f"Diferencia: {bt.mejora_pct:+.3f}% · mejor en {bt.meses_mejor} meses, peor en {bt.meses_peor}.",
-        "Una diferencia pequeña no prueba que el radar sea mejor: el dato que importa es el fuera de muestra.",
+        f"Desde {reporte.mes_anio(str(bt.desde))} ({bt.meses} meses), sin costos:",
+        f"· Radar: ${reporte.num(bt.precio_radar)} por dólar",
+        f"· Cuota fija mensual: ${reporte.num(bt.precio_dca)} por dólar",
+        f"· El radar pagó {reporte.num(abs(dif), 2)}% {'más' if dif > 0 else 'menos'}.",
+        "",
+        "No incluye costos de cambio. No prueba ventaja futura.",
     ]))
 
 
-@comando("salud", "frescura y fallas de cada fuente")
+@comando("salud", "¿están los datos al día?")
 def _salud(_args: str) -> Respuesta:
     s = metricas.salud(date.today())
-    lineas = ["Estado de las fuentes (huecos = saltos de más de 4 días, feriados largos incluidos):"]
-    for _, f in s.iterrows():
-        if f["ultimo_dato"] is None:
-            lineas.append(f" · {f['serie']}: sin datos")
-            continue
-        dias = int(f["dias_sin_dato"])
-        lineas.append(f" · {f['serie']}: último dato {f['ultimo_dato']} ({dias} día{'s' if dias != 1 else ''}), "
-                      f"huecos {int(f['huecos'])}, fallas seguidas {int(f['fallas_consecutivas'])}")
+    s = s.assign(limite=s["serie"].map(almacen.antiguedad_max))
+    ok = s["dias_sin_dato"].notna() & (s["dias_sin_dato"] <= s["limite"])
+    lineas = [f"Fuentes al día: {int(ok.sum())} de {len(s)}."]
+    for _, f in s[~ok].iterrows():
+        if pd.isna(f["dias_sin_dato"]):
+            lineas.append(f"· {f['serie']}: sin datos")
+        else:
+            lineas.append(f"· {f['serie']}: último dato hace {int(f['dias_sin_dato'])} días "
+                          f"(máximo {int(f['limite'])})")
     return Respuesta("\n".join(lineas))
 
 

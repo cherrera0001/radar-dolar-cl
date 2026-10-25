@@ -100,8 +100,8 @@ def test_contexto_publico_no_tiene_iconos_de_color_ni_instrucciones():
 
     fila = pd.Series({"valor_justo": -0.5, "cobre": 0.1})
     a = {"estado": "CARO", "precio": 990.0, "fecha": "2026-10-23", "compuesto": -0.6, "fila": fila}
-    texto = reporte.contexto_publico(a, [])
-    assert "Contexto (no es señal)" in texto
+    texto = reporte.contexto_publico(a, None, None)
+    assert "no es asesoría" in texto
     assert "🔴" not in texto and "🟢" not in texto
     assert not any(palabra in texto for palabra in ("MANTENER", "VENDER", "COMPRAR"))
     assert "Recomendación" not in texto and "compra tu" not in texto.lower()

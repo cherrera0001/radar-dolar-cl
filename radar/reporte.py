@@ -141,28 +141,46 @@ def alerta(a: dict, anterior: str | None, previas: dict[str, float] | None = Non
     ])
 
 
-def contexto_publico(a: dict, avisos: list[str], cierre: tuple | None = None) -> str:
-    """Para lectores públicos: semáforo sin colores, rotulado como contexto y nunca como instrucción.
+MESES_ABR = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"]
 
-    `cierre` = (fecha, valor) del último dólar observado. Se muestra con su fecha real; el semáforo
-    usa un día de rezago y se indica aparte.
+
+def mes_anio(iso: str) -> str:
+    """'2012-11' -> 'nov-2012'."""
+    anio, mes = iso.split("-")[:2]
+    return f"{MESES_ABR[int(mes) - 1]}-{anio}"
+
+
+DEFINICION_ESTADO = {
+    "BARATO": "Barato: el dólar está bajo frente a cobre, dólar global y tasas.",
+    "NORMAL": "Normal: el dólar está en un rango habitual frente a esas variables.",
+    "CARO": "Caro: el dólar está alto frente a cobre, dólar global y tasas.",
+    "SIN DATOS": "Sin datos suficientes.",
+}
+
+
+def contexto_publico(a: dict, cierre: tuple | None, rendimiento_pct: float | None, desde: str = "",
+                     url: str = "", avisos: list[str] | tuple = ()) -> str:
+    """Texto público corto: describe, no recomienda. Sin colores ni instrucciones.
+
+    `cierre` = (fecha, valor) del último dólar observado, con su fecha real. El semáforo usa datos
+    hasta su propia fecha (un día de rezago). `rendimiento_pct` = radar frente a cuota fija mensual,
+    en %, positivo si el radar pagó más por dólar.
     """
-    fila = a["fila"]
     fecha_c, precio_c = cierre if cierre else (date.fromisoformat(a["fecha"]), a["precio"])
+    fecha_s = date.fromisoformat(a["fecha"])
     lineas = [
-        f"Contexto (no es señal) · cierre observado {fecha_c:%d-%m-%Y}",
-        f"Dólar observado: ${num(precio_c)}",
-        f"Semáforo con datos hasta {a['fecha']} (rezago de un día hábil)",
-        f"Semáforo: {a['estado']} · puntaje "
-        f"{'+' if a['compuesto'] >= 0 else '−'}{num(abs(a['compuesto']))}" if _ok(a["compuesto"]) else "Semáforo: sin datos",
-        CONTEXTO[a["estado"]],
-        "",
-        "Señales (+ barato / − caro):",
-        *lineas_senales(fila),
+        f"Dólar: ${num(precio_c)} (cierre {fecha_c:%d-%m-%Y})",
+        f"Semáforo: {a['estado']} (datos hasta {fecha_s:%d-%m-%Y})",
+        DEFINICION_ESTADO[a["estado"]],
     ]
+    if rendimiento_pct is not None:
+        lineas += ["", f"Desde {mes_anio(desde)}, el radar pagó {num(abs(rendimiento_pct), 2)}% "
+                       f"{'más' if rendimiento_pct > 0 else 'menos'} por dólar que una cuota fija mensual, sin costos."]
     if avisos:
-        lineas += ["", "⚠️ " + "\n⚠️ ".join(avisos)]
-    lineas += ["", REGLA, PIE]
+        lineas += ["", *[f"⚠️ {x}" for x in avisos]]
+    lineas += ["", "Describe el pasado; no es asesoría financiera."]
+    if url:
+        lineas.append(f"Panel: {url}")
     return "\n".join(lineas)
 
 

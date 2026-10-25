@@ -140,7 +140,7 @@ def test_estado_muestra_el_cierre_real_con_su_fecha():
 
     fila = pd.Series({"valor_justo": -0.5, "cobre": 0.1})
     a = {"estado": "CARO", "precio": 976.82, "fecha": "2026-10-22", "compuesto": -0.6, "fila": fila}
-    texto = reporte.contexto_publico(a, [], (date(2026, 10, 23), 986.58))
-    assert "cierre observado 23-10-2026" in texto
+    texto = reporte.contexto_publico(a, (date(2026, 10, 23), 986.58), None)
+    assert "cierre 23-10-2026" in texto
     assert "$986,58" in texto
-    assert "datos hasta 2026-10-22" in texto
+    assert "datos hasta 22-10-2026" in texto
