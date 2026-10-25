@@ -242,9 +242,11 @@ def ciclo(una_vez: bool) -> int:
                 continue
             try:
                 _enviar(chat, responder(msg))
-                atendidos += 1
             except telegram.TelegramError as e:
-                print(f"no se pudo responder: {e}", file=sys.stderr)
+                # El offset no avanza: el mensaje se reintenta en la próxima corrida.
+                print(f"no se pudo responder al update {u['update_id']}: {e}", file=sys.stderr)
+                return atendidos
+            atendidos += 1
             _guardar_offset(offset)
             if atendidos >= MENSAJES_POR_CORRIDA:
                 return atendidos

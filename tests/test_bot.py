@@ -95,3 +95,16 @@ def test_comandos_publicos_no_requieren_rol(texto, monkeypatch):
     monkeypatch.setattr(bot, "_datos", lambda: (_ for _ in ()).throw(RuntimeError("sin datos")))
     r = responder({"text": texto})
     assert "No pude calcular" in r.texto
+
+
+def test_envio_fallido_no_avanza_el_offset(tmp_path, monkeypatch):
+    monkeypatch.setattr(bot, "ARCHIVO_BOT", tmp_path / "bot.json")
+    lotes = [[{"update_id": 10, "message": {"chat": {"id": 1}, "from": {"is_bot": False}, "text": "/ayuda"}}], []]
+    monkeypatch.setattr(telegram, "actualizaciones", lambda offset, espera: lotes.pop(0) if lotes else [])
+
+    def falla(chat, texto, silencioso=False):
+        raise telegram.TelegramError("Telegram rechazó el envío")
+
+    monkeypatch.setattr(telegram, "mensaje", falla)
+    assert bot.ciclo(una_vez=True) == 0
+    assert not (tmp_path / "bot.json").exists()  # ningún offset guardado: el update sigue pendiente
