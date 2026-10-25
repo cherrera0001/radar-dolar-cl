@@ -29,7 +29,7 @@ from .senales import SERIES, calcular
 ARCHIVO_BOT = Path("data/bot.json")
 CONSULTAS_POR_VENTANA = 5  # por chat
 VENTANA_SEGUNDOS = 600
-MENSAJES_POR_CORRIDA = 100  # tope total: acota el tiempo de Actions
+MENSAJES_POR_CORRIDA = 1000  # tope por corrida; la cadena de corridas sigue atendiendo
 ESPERA_LARGA = 25  # segundos de long polling en modo local
 
 COMANDOS: dict[str, tuple] = {}  # nombre -> (función, descripción)
@@ -219,13 +219,20 @@ def _guardar_offset(offset: int) -> None:
     ARCHIVO_BOT.write_text(json.dumps({"offset": offset}) + "\n", encoding="utf-8")
 
 
-def ciclo(una_vez: bool) -> int:
-    """Atiende los mensajes pendientes. Devuelve cuántos se respondieron."""
+def ciclo(una_vez: bool, durante: float = 0) -> int:
+    """Atiende mensajes. Devuelve cuántos se respondieron.
+
+    `durante` (segundos) hace long polling hasta ese plazo: así una corrida responde en segundos
+    en lugar de esperar al próximo cron. `una_vez` procesa lo pendiente y termina.
+    """
     offset = _leer_offset()
     limite = Limite()
     avisados: set = set()
     atendidos = 0
+    fin = time.monotonic() + durante if durante else None
     while True:
+        if fin is not None and time.monotonic() >= fin:
+            return atendidos
         updates = telegram.actualizaciones(offset, espera=0 if una_vez else ESPERA_LARGA)
         for u in updates:
             offset = u["update_id"] + 1
@@ -248,6 +255,8 @@ def ciclo(una_vez: bool) -> int:
                 return atendidos
             atendidos += 1
             _guardar_offset(offset)
+            # Registro sin contenido: el log de Actions es público en este repo.
+            print(f"update {u['update_id']}: /{interpretar(msg.get('text') or '')[0] or '-'} respondido")
             if atendidos >= MENSAJES_POR_CORRIDA:
                 return atendidos
         if una_vez:

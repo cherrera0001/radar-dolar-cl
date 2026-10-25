@@ -214,7 +214,7 @@ def cmd_prueba(_: argparse.Namespace) -> int:
 def cmd_bot(args: argparse.Namespace) -> int:
     from .bot import ciclo
 
-    atendidos = ciclo(args.una_vez)
+    atendidos = ciclo(args.una_vez, durante=args.durante)
     print(f"consultas atendidas: {atendidos}")
     return 0
 
@@ -235,7 +235,8 @@ def main(argv: list[str] | None = None) -> int:
     sp.add_argument("--enviar", action="store_true", help="envía al chat del dueño, una vez por mes")
     sp.set_defaults(f=cmd_accion)
     sp = sub.add_parser("bot", help="responde comandos de Telegram (público)")
-    sp.add_argument("--una-vez", action="store_true", help="atiende lo pendiente y termina (GitHub Actions)")
+    sp.add_argument("--una-vez", action="store_true", help="atiende lo pendiente y termina")
+    sp.add_argument("--durante", type=float, default=0, help="escucha durante N segundos (long polling)")
     sp.set_defaults(f=cmd_bot)
     sp = sub.add_parser("bcch", help="API del Banco Central: prueba de conexión o catálogo de series")
     sp.add_argument("accion", choices=["prueba", "catalogo"])

@@ -108,3 +108,16 @@ def test_envio_fallido_no_avanza_el_offset(tmp_path, monkeypatch):
     monkeypatch.setattr(telegram, "mensaje", falla)
     assert bot.ciclo(una_vez=True) == 0
     assert not (tmp_path / "bot.json").exists()  # ningún offset guardado: el update sigue pendiente
+
+
+def test_escucha_con_plazo_termina_sin_mensajes(tmp_path, monkeypatch):
+    monkeypatch.setattr(bot, "ARCHIVO_BOT", tmp_path / "bot.json")
+    llamadas = []
+
+    def vacio(offset, espera):
+        llamadas.append(espera)
+        return []
+
+    monkeypatch.setattr(telegram, "actualizaciones", vacio)
+    assert bot.ciclo(una_vez=False, durante=0.05) == 0
+    assert llamadas and all(e == bot.ESPERA_LARGA for e in llamadas)

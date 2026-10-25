@@ -1,23 +1,26 @@
 name: Bot
 
-# Atiende consultas de Telegram. GitHub puede retrasar el cron varios minutos.
+# Escucha Telegram de forma continua. Cada corrida dura ~5,5 h (long polling) y al terminar
+# dispara la siguiente, así que las consultas se atienden en segundos sin servidor propio.
+# El cron es solo un vigía: si la cadena se corta, lo reinicia cuando GitHub lo programa.
 on:
+  workflow_dispatch:
   schedule:
     - cron: "*/30 * * * *"
-  workflow_dispatch:
 
 permissions:
   contents: write
+  actions: write
 
-# Comparte grupo con Diario: ambos escriben en el repo, así que van en serie.
+# Una sola cadena a la vez: dos getUpdates simultáneos hacen que Telegram rechace uno.
 concurrency:
-  group: radar-datos
+  group: radar-bot
   cancel-in-progress: false
 
 jobs:
   bot:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 350
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -27,16 +30,23 @@ jobs:
           cache-dependency-path: pyproject.toml
       - run: pip install -e .
 
-      - name: Atender consultas
+      - name: Escuchar Telegram (5,5 h)
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           DASHBOARD_URL: ${{ vars.DASHBOARD_URL }}
-        run: radar bot --una-vez
+        run: radar bot --durante 19800
 
       - name: Versionar offset (solo si cambió)
+        if: always()
         run: |
           git config user.name "radar-dolar[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add data/bot.json
           git diff --cached --quiet || git commit -m "bot: offset $(date -u +%F-%H%M)"
           git push || (git pull --rebase -X theirs -q && git push)
+
+      - name: Encadenar la siguiente corrida
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run bot.yml --repo "${{ github.repository }}"
