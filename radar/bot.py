@@ -77,7 +77,7 @@ def _ayuda(_args: str) -> Respuesta:
 @comando("estado", "contexto del semáforo hoy (no es señal)")
 def _estado(_args: str) -> Respuesta:
     _, _, a = _datos()
-    return Respuesta(reporte.contexto_publico(a, _avisos()))
+    return Respuesta(reporte.contexto_publico(a, _avisos(), almacen.ultimo_cierre()))
 
 
 @comando("historia", "qué hizo el dólar después de cada estado")

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import math
+from datetime import date
 from pathlib import Path
 
 import pandas as pd
@@ -140,12 +141,18 @@ def alerta(a: dict, anterior: str | None, previas: dict[str, float] | None = Non
     ])
 
 
-def contexto_publico(a: dict, avisos: list[str]) -> str:
-    """Para lectores públicos: semáforo sin colores, rotulado como contexto y nunca como instrucción."""
+def contexto_publico(a: dict, avisos: list[str], cierre: tuple | None = None) -> str:
+    """Para lectores públicos: semáforo sin colores, rotulado como contexto y nunca como instrucción.
+
+    `cierre` = (fecha, valor) del último dólar observado. Se muestra con su fecha real; el semáforo
+    usa un día de rezago y se indica aparte.
+    """
     fila = a["fila"]
+    fecha_c, precio_c = cierre if cierre else (date.fromisoformat(a["fecha"]), a["precio"])
     lineas = [
-        f"Contexto (no es señal) · datos al {a['fecha']}",
-        f"Dólar observado: ${num(a['precio'])}",
+        f"Contexto (no es señal) · cierre observado {fecha_c:%d-%m-%Y}",
+        f"Dólar observado: ${num(precio_c)}",
+        f"Semáforo con datos hasta {a['fecha']} (rezago de un día hábil)",
         f"Semáforo: {a['estado']} · puntaje "
         f"{'+' if a['compuesto'] >= 0 else '−'}{num(abs(a['compuesto']))}" if _ok(a["compuesto"]) else "Semáforo: sin datos",
         CONTEXTO[a["estado"]],

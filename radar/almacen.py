@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import csv
 from collections.abc import Iterable
+from datetime import date
 from pathlib import Path
 
 import pandas as pd
@@ -83,6 +84,14 @@ def guardar(puntos: Iterable[Punto], base: Path = DIR_SERIES) -> dict[str, int]:
                 valor, fuente = actual[fecha]
                 w.writerow([fecha, repr(valor), fuente])
     return cambios
+
+
+def ultimo_cierre(serie: str = "usdclp", base: Path = DIR_SERIES) -> tuple[date, float] | None:
+    """Último valor observado de la serie con su fecha real, sin el rezago de alineación del semáforo."""
+    s = leer(serie, base).dropna()
+    if s.empty:
+        return None
+    return s.index.max().date(), float(s.iloc[-1])
 
 
 def tabla(series: Iterable[str], base: Path = DIR_SERIES) -> pd.DataFrame:
