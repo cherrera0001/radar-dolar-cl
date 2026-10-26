@@ -9,7 +9,7 @@
  },
  "salud": {
   "cobre_lb": {
-   "fallas": 1,
+   "fallas": 2,
    "aviso_falla": false,
    "aviso_atraso": false
   },
@@ -24,12 +24,12 @@
    "aviso_atraso": false
   },
   "tpm": {
-   "fallas": 1,
+   "fallas": 2,
    "aviso_falla": false,
    "aviso_atraso": false
   },
   "usdclp": {
-   "fallas": 1,
+   "fallas": 2,
    "aviso_falla": false,
    "aviso_atraso": false
   },
