@@ -1,11 +1,15 @@
 {
  "ultima_actualizacion": {
-  "fecha": "2026-10-24",
-  "errores": []
+  "fecha": "2026-10-26",
+  "errores": [
+   "no se pudo leer https://mindicador.cl/api/dolar/2026: The read operation timed out",
+   "no se pudo leer https://mindicador.cl/api/libra_cobre/2026: The read operation timed out",
+   "no se pudo leer https://mindicador.cl/api/tpm/2026: The read operation timed out"
+  ]
  },
  "salud": {
   "cobre_lb": {
-   "fallas": 0,
+   "fallas": 1,
    "aviso_falla": false,
    "aviso_atraso": false
   },
@@ -20,12 +24,12 @@
    "aviso_atraso": false
   },
   "tpm": {
-   "fallas": 0,
+   "fallas": 1,
    "aviso_falla": false,
    "aviso_atraso": false
   },
   "usdclp": {
-   "fallas": 0,
+   "fallas": 1,
    "aviso_falla": false,
    "aviso_atraso": false
   },
