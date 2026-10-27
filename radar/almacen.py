@@ -6,6 +6,7 @@ Git es la base de datos: cada actualización queda en el historial y es auditabl
 from __future__ import annotations
 
 import csv
+import os
 from collections.abc import Iterable
 from datetime import date
 from pathlib import Path
@@ -77,12 +78,18 @@ def guardar(puntos: Iterable[Punto], base: Path = DIR_SERIES) -> dict[str, int]:
                     actual[fila["fecha"]] = (float(fila["valor"]), fila["fuente"])
         cambios[serie] = sum(1 for k, v in nuevos.items() if actual.get(k) != v)
         actual.update(nuevos)
-        with p.open("w", newline="", encoding="utf-8") as f:
-            w = csv.writer(f, lineterminator="\n")
-            w.writerow(["fecha", "valor", "fuente"])
-            for fecha in sorted(actual):
-                valor, fuente = actual[fecha]
-                w.writerow([fecha, repr(valor), fuente])
+        # Se escribe a un temporal y se reemplaza al final: si el job muere a mitad, el CSV anterior queda intacto.
+        tmp = p.with_name(p.name + ".tmp")
+        try:
+            with tmp.open("w", newline="", encoding="utf-8") as f:
+                w = csv.writer(f, lineterminator="\n")
+                w.writerow(["fecha", "valor", "fuente"])
+                for fecha in sorted(actual):
+                    valor, fuente = actual[fecha]
+                    w.writerow([fecha, repr(valor), fuente])
+            os.replace(tmp, p)
+        finally:
+            tmp.unlink(missing_ok=True)
     return cambios
 
 
