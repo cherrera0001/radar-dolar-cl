@@ -115,7 +115,7 @@ def cmd_alerta(args: argparse.Namespace) -> int:
     if not avisos:
         print(f"Sin avisos de salud: {a['estado']} ({a['fecha']}).")
     else:
-        texto = "⚠️ Radar Dólar · salud de fuentes\\n" + "\\n".join(avisos)
+        texto = "⚠️ Radar Dólar · salud de fuentes\n" + "\n".join(avisos)
         if not args.enviar:
             print(texto)
             return 0  # sin envío no se marcan como enviados
