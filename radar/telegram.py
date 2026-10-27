@@ -18,7 +18,14 @@ LIMITE_TEXTO = 4000  # Telegram admite 4096; margen para no cortar caracteres
 
 
 class TelegramError(Exception):
-    pass
+    def __init__(self, mensaje: str, codigo: int | None = None):
+        super().__init__(mensaje)
+        self.codigo = codigo
+
+    @property
+    def permanente(self) -> bool:
+        """Un 4xx (salvo 429) no cambia al reintentar: el chat bloqueó al bot, no existe o el texto es inválido."""
+        return self.codigo is not None and 400 <= self.codigo < 500 and self.codigo != 429
 
 
 def _llamar(metodo: str, cuerpo: bytes, ctype: str, timeout: float = 30.0):
@@ -32,7 +39,7 @@ def _llamar(metodo: str, cuerpo: bytes, ctype: str, timeout: float = 30.0):
     except urllib.error.HTTPError as e:
         # Telegram explica el error en el cuerpo (p. ej. "chat not found"); el token nunca se muestra.
         detalle = e.read().decode("utf-8", errors="replace")[:200]
-        raise TelegramError(f"{metodo} HTTP {e.code}: {detalle}") from e
+        raise TelegramError(f"{metodo} HTTP {e.code}: {detalle}", codigo=e.code) from e
     except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as e:
         raise TelegramError(f"{metodo}: sin respuesta válida de Telegram ({type(e).__name__})") from e
     validar_respuesta(respuesta)
