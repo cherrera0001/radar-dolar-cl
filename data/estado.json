@@ -2,15 +2,15 @@
  "ultima_actualizacion": {
   "fecha": "2026-10-27",
   "errores": [
-   "no se pudo leer https://mindicador.cl/api/dolar/2026: The read operation timed out",
-   "no se pudo leer https://mindicador.cl/api/libra_cobre/2026: <urlopen error [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1010)>",
-   "no se pudo leer https://mindicador.cl/api/tpm/2026: <urlopen error [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1010)>"
+   "mindicador.cl/dolar: 'codigo' inesperado: None",
+   "mindicador.cl/tpm: 'codigo' inesperado: None",
+   "conciliación BCCh no disponible: faltan BCCH_USER / BCCH_PASS"
   ]
  },
  "salud": {
   "cobre_lb": {
-   "fallas": 3,
-   "aviso_falla": true,
+   "fallas": 0,
+   "aviso_falla": false,
    "aviso_atraso": false
   },
   "dxy": {
@@ -24,12 +24,12 @@
    "aviso_atraso": false
   },
   "tpm": {
-   "fallas": 3,
+   "fallas": 4,
    "aviso_falla": true,
    "aviso_atraso": false
   },
   "usdclp": {
-   "fallas": 3,
+   "fallas": 4,
    "aviso_falla": true,
    "aviso_atraso": false
   },
@@ -42,11 +42,11 @@
  "avisos_pendientes": [],
  "estado": "CARO",
  "fecha": "2026-10-22",
- "compuesto": -0.6030102954439216,
+ "compuesto": -0.5835613489285245,
  "senales": {
   "valor_justo": -1.0,
   "valoracion": -0.992,
-  "cobre": -0.421,
+  "cobre": -0.292,
   "dxy": 0.074,
   "tasas": 0.16,
   "riesgo": -0.152
