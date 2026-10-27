@@ -24,7 +24,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from . import almacen, grafico, metricas, reporte, telegram
+from . import almacen, grafico, lectura, metricas, reporte, telegram
 from .backtest import backtest
 from .cli import _avisos
 from .senales import SERIES, calcular
@@ -122,6 +122,25 @@ def _prediccion(_args: str) -> Respuesta:
         "",
         "Es lo que pasó en el pasado, no lo que va a pasar.",
     ]))
+
+
+@comando("porque", "por qué el semáforo dice lo que dice")
+def _porque(_args: str) -> Respuesta:
+    _, _, a = _datos()
+    lineas = [*lectura.explicar(a, a["fila"], date.today()), "", "Describe el pasado; no es asesoría financiera."]
+    return Respuesta("\n".join(lineas))
+
+
+@comando("cambios", "qué cambió desde la última lectura guardada")
+def _cambios(_args: str) -> Respuesta:
+    _, _, a = _datos()
+    est = reporte.leer_estado()
+    return Respuesta("\n".join(lectura.cambios(a["fila"], est.get("senales"), est.get("fecha"))))
+
+
+@comando("glosario", "qué significan los términos")
+def _glosario(_args: str) -> Respuesta:
+    return Respuesta("\n".join(lectura.glosario()))
 
 
 @comando("grafico", "último año del dólar con el semáforo")

@@ -15,7 +15,7 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 
-from radar import almacen, investigacion, metricas, reporte
+from radar import almacen, investigacion, lectura, metricas, reporte
 from radar.almacen import tabla
 from radar.senales import DIAS_ANIO, SERIES, calcular, estado
 
@@ -70,6 +70,10 @@ st.warning(
     "**Este tablero no dice si comprar, vender o mantener.** Esa decisión depende de tu plan personal "
     "(colchón, necesidades, peso del dólar en tu patrimonio), no del precio."
 )
+
+# Misma lectura que el comando /porque del bot. Se escapa "$": Streamlit lo tomaría como fórmula.
+with st.expander("¿Por qué el semáforo dice esto?", expanded=True):
+    st.markdown("  \n".join(lectura.explicar(actual, actual["fila"], date.today())).replace("$", r"\$"))
 
 t1, t2, t3, t4, t5 = st.tabs(["Calibración", "Radar vs DCA", "Estacionalidad", "Correlación", "Salud de datos"])
 
