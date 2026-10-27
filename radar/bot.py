@@ -272,15 +272,20 @@ def ciclo(una_vez: bool, durante: float = 0, publicar: bool = False) -> int:
             try:
                 _enviar(chat, responder(msg))
             except telegram.TelegramError as e:
-                # El offset no avanza: el mensaje se reintenta en la próxima corrida.
-                print(f"no se pudo responder al update {u['update_id']}: {e}", file=sys.stderr)
-                return atendidos
-            atendidos += 1
+                if not e.permanente:
+                    # Fallo transitorio: el offset no avanza y el mensaje se reintenta en la próxima corrida.
+                    print(f"no se pudo responder al update {u['update_id']}: {e}", file=sys.stderr)
+                    return atendidos
+                # Error permanente (p. ej. el chat bloqueó al bot): se descarta. Si se reintentara, ese único
+                # update frenaría la cola de todos los demás en cada corrida.
+                print(f"update {u['update_id']} descartado: {e}", file=sys.stderr)
+            else:
+                atendidos += 1
+                # Registro sin contenido: el log de Actions es público en este repo.
+                print(f"update {u['update_id']}: /{interpretar(msg.get('text') or '')[0] or '-'} respondido")
             _guardar_offset(offset)
             if publicar:
                 _publicar_offset()
-            # Registro sin contenido: el log de Actions es público en este repo.
-            print(f"update {u['update_id']}: /{interpretar(msg.get('text') or '')[0] or '-'} respondido")
             if atendidos >= MENSAJES_POR_CORRIDA:
                 return atendidos
         if una_vez:
