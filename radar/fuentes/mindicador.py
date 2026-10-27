@@ -13,9 +13,10 @@ del valor.
 from __future__ import annotations
 
 import json
+import time
 from datetime import datetime
 
-from .base import FuenteError, Punto, http_get, validar_valor
+from .base import ESPERA_BASE_SEGUNDOS, REINTENTOS, FuenteError, Punto, http_get, validar_valor
 
 FUENTE = "mindicador.cl"
 URL = "https://mindicador.cl/api"
@@ -46,6 +47,8 @@ def leer_serie(cuerpo: object, serie: str) -> list[Punto]:
     codigo = SERIES[serie]
     if not isinstance(cuerpo, dict):
         raise FuenteError(f"{FUENTE}/{codigo}: la respuesta no es un objeto JSON")
+    if _error_del_servicio(cuerpo):
+        raise FuenteError(f"{FUENTE}/{codigo}: {cuerpo.get('message') or cuerpo.get('error')}")
     if cuerpo.get("codigo") != codigo:
         raise FuenteError(f"{FUENTE}/{codigo}: 'codigo' inesperado: {cuerpo.get('codigo')!r}")
     filas = cuerpo.get("serie")
@@ -60,10 +63,20 @@ def leer_serie(cuerpo: object, serie: str) -> list[Punto]:
     return puntos
 
 
+def _error_del_servicio(cuerpo: dict) -> bool:
+    """Un 200 con {"error": ..., "message": ...} en vez de la serie: es transitorio, se reintenta."""
+    return "error" in cuerpo and "serie" not in cuerpo
+
+
 def descargar(serie: str, anio: int) -> list[Punto]:
-    crudo = http_get(f"{URL}/{SERIES[serie]}/{anio}")
-    try:
-        cuerpo = json.loads(crudo)
-    except json.JSONDecodeError as e:
-        raise FuenteError(f"{FUENTE}/{SERIES[serie]}/{anio}: la respuesta no es JSON") from e
-    return leer_serie(cuerpo, serie)
+    for intento in range(REINTENTOS + 1):
+        crudo = http_get(f"{URL}/{SERIES[serie]}/{anio}")
+        try:
+            cuerpo = json.loads(crudo)
+        except json.JSONDecodeError as e:
+            raise FuenteError(f"{FUENTE}/{SERIES[serie]}/{anio}: la respuesta no es JSON") from e
+        if isinstance(cuerpo, dict) and _error_del_servicio(cuerpo) and intento < REINTENTOS:
+            time.sleep(ESPERA_BASE_SEGUNDOS * 2 ** intento)
+            continue
+        return leer_serie(cuerpo, serie)
+    raise AssertionError("inalcanzable: el último intento siempre devuelve o lanza")
