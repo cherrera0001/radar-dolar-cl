@@ -69,3 +69,21 @@ Fechas en America/Santiago. Commit base: `057ee1c` (rama `main`). Cada correcci�
 - Dimensiones revisadas al menos una vez: A, B, C, D, E, F, G, H (C, G, A y F parciales; ver el registro).
 - Hallazgos abiertos de severidad ≥ 9 sin decisión humana: ninguno.
 - Resumen en `reports/auditoria/RESUMEN.md`.
+
+## Pasada 2 · 2026-10-27 · resolver lo pendiente
+
+- Rama de integración `audit/integracion`: une R-01, R-02, R-03, R-04, R-05, R-14 y las nuevas.
+- R-11 · pin de acciones por SHA (resueltos con `gh api` contra `actions/checkout` y `actions/setup-python`).
+- R-09 · vigía de la corrida diaria (`radar vigia`, `vigia.yml`). Prueba de la lógica pura en `tests/test_vigia.py`.
+- R-06 · decisión del día d con señal de d−2 (`DESFASE_DECISION`). Primer intento rompió 5 pruebas de backtest que
+  codificaban el desfase de 1 día; las fixtures se movieron dos días atrás y la semántica no cambió. Cifras nuevas:
+  prueba fuera de muestra −0,041 % → −0,083 % frente a DCA. `docs/INVESTIGACION.md` actualizado.
+- R-08 · conciliación BCCh frente a mindicador (`radar/conciliacion.py`), aviso si hay 2 días seguidos con más de 0,5 %.
+  Credenciales en `diario.yml` y `semanal.yml`.
+- R-10 · textos largos de Telegram en partes, sin cortar en silencio.
+- R-15 · el gráfico reutiliza un archivo temporal.
+- R-13 · prueba que fija el grupo `radar-datos` en todo workflow que escribe `data/`.
+- R-07 · opción (a) adoptada; guarda de regresión en `tests/test_textos_publicos.py`. Pendiente de confirmación.
+- Un fallo de la prueba de privacidad (`reports/` no puede contener COMPRAR/VENDER/MANTENER ni `w*`) obligó a quitar esas
+  palabras de RESUMEN.md. La guarda hizo lo que debía.
+- Estado final: 127 pruebas en verde en `audit/integracion`, `ruff` limpio.
