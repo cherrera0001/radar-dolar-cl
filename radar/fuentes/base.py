@@ -2,13 +2,17 @@
 
 from __future__ import annotations
 
+import http.client
 import math
+import time
 import urllib.error
 import urllib.request
 from dataclasses import dataclass
 from datetime import date
 
 USER_AGENT = "radar-dolar-cl/0.1 (+https://github.com/cherrera0001/radar-dolar-cl)"
+REINTENTOS = 2  # además del primer intento: 3 en total
+ESPERA_BASE_SEGUNDOS = 2.0  # 2 s, luego 4 s: el job diario tiene margen de sobra
 
 # Rangos de cordura por serie. Un valor fuera de rango es un error de la fuente,
 # no un dato: es preferible no tener precio a guardar uno imposible.
@@ -48,10 +52,20 @@ def validar_valor(serie: str, valor: object) -> float:
 
 
 def http_get(url: str, timeout: float = 30.0) -> bytes:
-    """GET simple. Un error HTTP o de red se convierte en FuenteError."""
+    """GET con reintentos para fallos transitorios (red, 5xx, cortes al leer).
+
+    Un 4xx no se reintenta: la consulta está mal, no es un fallo de disponibilidad. Todo error de red
+    o de lectura termina como FuenteError: ninguna excepción de bajo nivel debe escapar y cortar la
+    actualización de las demás series.
+    """
     req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
-    try:
-        with urllib.request.urlopen(req, timeout=timeout) as resp:  # noqa: S310 (URLs fijas https)
-            return resp.read()
-    except (urllib.error.URLError, TimeoutError) as e:
-        raise FuenteError(f"no se pudo leer {url.split('?')[0]}: {e}") from e
+    for intento in range(REINTENTOS + 1):
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as resp:  # noqa: S310 (URLs fijas https)
+                return resp.read()
+        except (OSError, http.client.HTTPException) as e:  # URLError y TimeoutError son subclases de OSError
+            reintentable = not (isinstance(e, urllib.error.HTTPError) and e.code < 500)
+            if not reintentable or intento == REINTENTOS:
+                raise FuenteError(f"no se pudo leer {url.split('?')[0]}: {e}") from e
+        time.sleep(ESPERA_BASE_SEGUNDOS * 2 ** intento)
+    raise AssertionError("inalcanzable: el bucle siempre devuelve o lanza")
