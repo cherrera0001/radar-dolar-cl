@@ -1,0 +1,39 @@
+# Registro de riesgos · auditoría autónoma
+
+Escala: Impacto (1–5) × Probabilidad (1–5) = Severidad. El impacto es 5 cuando el usuario recibe un número o una
+fecha incorrectos, o una señal basada en datos rancios o incompletos. Las evidencias son `archivo:línea` del
+commit base `057ee1c` (rama `main`), salvo que la columna de estado diga otra cosa.
+
+Estados: **Corregido** (rama con pruebas en verde, sin mergear) · **Requiere decisión** (opciones en la descripción)
+· **Abierto** (sin corregir, bajo o recomendación) · **Hipótesis** (sin prueba reproducible todavía).
+
+| ID | Área | Descripción | Evidencia (archivo:línea) | Impacto | Probabilidad | Severidad | Estado |
+|---|---|---|---|---|---|---|---|
+| R-01 | E · Comunicación | El aviso de salud de fuentes se arma con `"\\n"` (barra invertida + n), así que Telegram recibe `\n` literal en vez de saltos de línea. | `radar/cli.py:118` | 3 | 5 | 15 | Corregido · `audit/R-01-aviso-salud-saltos` (fe5e0ec) |
+| R-02 | F · Operación | Si `radar actualizar` falla en todas las fuentes sale con código 1, y el paso "Avisos de salud" de `diario.yml` no tenía `if: always()`: el aviso de caída total nunca se enviaba. | `.github/workflows/diario.yml:33`, `radar/cli.py:54` | 4 | 3 | 12 | Corregido · `audit/R-02-alerta-con-fallo` (431493d) |
+| R-03 | A · Fuentes | `http_get` no reintentaba. Un fallo de red transitorio contaba como día fallido para la salud de la fuente (3 días hábiles seguidos disparan aviso). Además, un corte de conexión al leer la respuesta (`ConnectionResetError`, `RemoteDisconnected`) no era `FuenteError`: escapaba y cortaba `radar actualizar` entero, sin guardar las demás series. | `radar/fuentes/base.py:219-226` (antes) | 3 | 3 | 9 | Corregido · `audit/R-03-reintentos-http` (5b8d8cf) |
+| R-04 | F · Concurrencia | `diario`, `semanal` y `bcch` hacían `git push` sin rebase. `bot.yml` corre con otro grupo de `concurrency` y sí reintenta con rebase: si escribe a `main` entre medio, el push de datos falla y el commit del día se pierde hasta la corrida siguiente. | `.github/workflows/diario.yml:52-54`, `semanal.yml:44-45`, `bcch.yml:50-51`, `bot.yml:51` | 2 | 3 | 6 | Corregido · `audit/R-04-push-con-rebase` (fe78dad), **apilada sobre R-02** |
+| R-05 | B · Almacenamiento | `almacen.guardar` escribía directo sobre el CSV. Si el job moría a mitad, el CSV quedaba truncado y la siguiente lectura veía una historia incompleta. | `radar/almacen.py:80-85` (antes) | 3 | 1 | 3 | Corregido · `audit/R-05-escritura-atomica` (b874909) |
+| R-06 | C · Causalidad | La alineación a día de mercado de `cobre_lb` (−2 días hábiles) hace que la fila del día t−1 use un dato etiquetado t+1. El backtest y la decisión desplazan la señal solo 1 día (`compuesto.shift(1)`). Si la fecha de etiqueta es la fecha en que el dato está disponible, hay un adelanto de un día. La alineación se midió con correlaciones y no con fechas de disponibilidad. **Opciones:** (a) desplazar la señal según el mayor desfase de sus insumos (2 días) y repetir `radar investigar`; (b) documentar que el desfase es de vigencia y no de disponibilidad. **Recomendación: (a).** | `radar/almacen.py:35-44`, `radar/backtest.py:45`, `docs/METODOLOGIA.md:6`, `docs/HISTORICO.md:8-12` | 4 | 3 | 12 | Requiere decisión |
+| R-07 | E · Texto al dueño | Las instrucciones usan imperativos ("Vende solo ese monto…", "Compra tu cuota completa…"). La constitución (I, VI) los permite solo para el chat del dueño; el prompt de auditoría los prohíbe en cualquier texto al usuario. Hay conflicto entre dos reglas. **Opciones:** (a) mantener imperativos solo para el dueño y aplicar la prohibición del prompt al contexto público; (b) usar forma descriptiva también para el dueño ("Venta de necesidad: US$ X en tramos…"). **Recomendación: (a), y ajustar el prompt de auditoría.** | `radar/decision.py:229-236`, `.specify/memory/constitution.md` (I, VI) | 4 | 5 | 20 | Requiere decisión |
+| R-08 | A · Fuentes | Sin conciliación cruzada: el dólar de mindicador no se contrasta con BCCh (fase 2 inactiva en `actualizar`). Una divergencia silenciosa de una fuente no se detecta. | `radar/actualizar.py:147-169`, `radar/fuentes/bcentral.py:252-254` | 4 | 2 | 8 | Requiere decisión (activar BCCh en `actualizar` con una tolerancia definida; requiere credenciales y decidir la tolerancia) |
+| R-09 | F · Observabilidad | Nada avisa si el cron no corre (GitHub retrasa o salta crones). Un `diario` que no corre durante días deja el panel con datos viejos sin aviso. El vigía solo existe para `bot`. | `.github/workflows/diario.yml`, `semanal.yml` | 4 | 2 | 8 | Abierto · recomendación en `RESUMEN.md` |
+| R-10 | E · Telegram | `telegram.mensaje` corta el texto a 4000 caracteres sin aviso; un resumen largo pierde en silencio el pie y el aviso de fuente. | `radar/telegram.py:406` | 2 | 1 | 2 | Abierto (bajo) |
+| R-11 | G · Supply chain | Las acciones están fijadas por etiqueta (`@v4`, `@v5`), no por SHA. Fijar SHA requiere verificarlos contra el repositorio oficial, y no se pudo hacer sin red. | `.github/workflows/*.yml` | 2 | 2 | 4 | Requiere decisión (fijar SHA con verificación en línea) |
+| R-12 | H · Pruebas | Los workflows no tenían pruebas: un cambio en `if:`, en `permissions:` o en el orden de pasos no fallaba en CI. | `tests/` (antes ausente), `.github/workflows/ci.yml:24-25` | 3 | 3 | 9 | Corregido · `tests/test_workflows.py` en `audit/R-02-alerta-con-fallo` y `audit/R-04-push-con-rebase` |
+| R-13 | B · Escrituras concurrentes | `data/envios.json` y `data/estado.json` se leen y escriben sin bloqueo; sólo el grupo `radar-datos` de Actions los protege. Riesgo bajo mientras `diario` y `semanal` compartan grupo. | `radar/envios.py:336-346`, `radar/reporte.py:191-193` | 2 | 1 | 2 | Abierto (bajo) |
+| R-14 | G/E · Bot | Un error permanente de Telegram al responder (p. ej. 403 porque el usuario bloqueó al bot) dejaba el offset atrás. El mismo update se reintentaba en cada corrida y frenaba la cola de todos los demás usuarios. | `radar/bot.py:272-277` (antes), `radar/telegram.py` | 4 | 2 | 8 | Corregido · `audit/R-14-mensaje-veneno` (47f7df0) |
+| R-15 | B · Recursos | `_grafico` crea un directorio temporal por consulta y nunca lo borra. Inocuo en runners efímeros, pero se acumula en una corrida de 5,5 h con muchas consultas. | `radar/bot.py:130` | 1 | 3 | 3 | Abierto (bajo) |
+
+## Dimensiones revisadas
+
+| Dimensión | Estado | Nota |
+|---|---|---|
+| A. Fuentes de datos | Parcial | R-03, R-08. Falta revisar feriados chilenos y de EE. UU. y la divergencia real entre mindicador y BCCh (requiere credenciales). |
+| B. Integridad y almacenamiento | Parcial | R-05, R-13, R-15. Duplicados y orden se cubren en `almacen.guardar`. Faltan pruebas de huecos y de idempotencia en re-ejecución. |
+| C. Estadística y modelos | Parcial | R-06. Revisados `backtest.py` (causalidad de la señal) y `senales.py` (ventanas solo hacia atrás). No revisados: `investigacion.py` a fondo, sobreajuste de umbrales, costos de canal (`docs/estado-del-arte/03-costos-canales.md`). |
+| D. Señales y decisión | Revisada | Precedencia y frescura correctas en `decision.py`. Sin histéresis: el umbral de `senales.py` es fijo; no se corrigió por ser decisión metodológica (anotado en R-07). |
+| E. Comunicación | Revisada | R-01, R-07, R-10, R-14. `bot.py` completo leído: no hay inyección (texto sin formato, sin ejecución de entradas). El mensaje de error del bot no muestra detalles internos. |
+| F. Operación serverless | Parcial | R-02, R-04, R-09. Falta medir tiempo real de los jobs (no hay logs de Actions en el repo). |
+| G. Seguridad y cumplimiento | Parcial | El token no aparece en errores (`telegram.py:391`). Las URLs de BCCh sin el query en los mensajes de error (`base.py`). R-11. `pip-audit` no se ejecutó (sin red). |
+| H. Pruebas | Parcial | R-12 y pruebas nuevas para R-01, R-02, R-03, R-04, R-05 y R-14. La suite de la rama base tiene 93 pruebas; cada rama corregida suma las suyas. |
