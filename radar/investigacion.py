@@ -16,7 +16,7 @@ from dataclasses import dataclass
 
 import pandas as pd
 
-from .senales import UMBRAL
+from .senales import DESFASE_DECISION, UMBRAL
 
 CORTE = pd.Timestamp("2020-01-01")  # diseño < CORTE <= prueba
 PRESUPUESTO = 100_000.0
@@ -109,12 +109,12 @@ class Resultado:
 def preparar(precios: pd.Series, senales: pd.DataFrame) -> pd.DataFrame:
     """Días con precio, marcando inicio/fin de mes. Solo meses completos con señal desde el día 1.
 
-    Las señales se desplazan 1 día (#19): la decisión del día d usa lo conocido hasta d-1.
+    Las señales se desplazan DESFASE_DECISION días (R-06): la decisión del día d usa lo conocido hasta d-2.
     """
     df = pd.DataFrame({
         "precio": precios,
-        "compuesto": senales["compuesto"].shift(1),
-        "desvio": senales.get("desvio_pct", pd.Series(float("nan"), index=senales.index)).shift(1),
+        "compuesto": senales["compuesto"].shift(DESFASE_DECISION),
+        "desvio": senales.get("desvio_pct", pd.Series(float("nan"), index=senales.index)).shift(DESFASE_DECISION),
     }).dropna(subset=["precio"])
     mes = df.index.to_period("M")
     df["primer"] = ~mes.duplicated(keep="first")
