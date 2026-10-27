@@ -127,7 +127,7 @@ def _prediccion(_args: str) -> Respuesta:
 @comando("grafico", "último año del dólar con el semáforo")
 def _grafico(_args: str) -> Respuesta:
     df, s, _ = _datos()
-    ruta = Path(tempfile.mkdtemp()) / "grafico.png"
+    ruta = Path(tempfile.gettempdir()) / "radar-grafico.png"  # uno solo: se reescribe en cada consulta
     grafico.generar(df, s, ruta)
     return Respuesta("Último año del dólar y del semáforo.", [("foto", ruta)])
 
