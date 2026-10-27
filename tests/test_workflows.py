@@ -49,3 +49,9 @@ def test_la_actualizacion_recibe_las_credenciales_de_bcch():
         paso = _paso(workflow, "Actualizar series")
         assert "BCCH_USER: ${{ secrets.BCCH_USER }}" in paso, workflow
         assert "BCCH_PASS: ${{ secrets.BCCH_PASS }}" in paso, workflow
+
+
+def test_todo_workflow_que_escribe_datos_comparte_el_grupo_de_concurrencia():
+    # data/envios.json y data/estado.json se escriben sin bloqueo: solo el grupo de Actions los protege.
+    for workflow in ["diario.yml", "semanal.yml", "bcch.yml", "vigia.yml"]:
+        assert "group: radar-datos" in (WORKFLOWS / workflow).read_text(encoding="utf-8"), workflow
