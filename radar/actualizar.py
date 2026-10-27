@@ -6,8 +6,8 @@ from dataclasses import dataclass, field
 from datetime import date, timedelta
 from pathlib import Path
 
-from . import almacen
-from .fuentes import fred, mindicador
+from . import almacen, conciliacion
+from .fuentes import bcentral, fred, mindicador
 from .fuentes.base import FuenteError
 
 ANIO_INICIO = 2012  # historia suficiente para ventanas de 2 años + backtest de ~12 años
@@ -26,6 +26,7 @@ class Resultado:
     cambios: dict[str, int] = field(default_factory=dict)
     errores: list[str] = field(default_factory=list)
     fallidas: set[str] = field(default_factory=set)  # series cuya descarga falló (para radar/salud.py)
+    avisos: list[str] = field(default_factory=list)  # divergencias entre fuentes (radar/conciliacion.py)
 
 
 def actualizar(hoy: date | None = None, base: Path = almacen.DIR_SERIES) -> Resultado:
@@ -54,4 +55,19 @@ def actualizar(hoy: date | None = None, base: Path = almacen.DIR_SERIES) -> Resu
             r.fallidas.add(serie)
             continue
         r.cambios[serie] = almacen.guardar(_hasta(puntos, hoy), base).get(serie, 0)
+    _conciliar(hoy, base, r)
     return r
+
+
+def _conciliar(hoy: date, base: Path, r: Resultado) -> None:
+    """Contrasta el dólar con BCCh. Si no se puede, lo deja dicho en los errores: nunca calla."""
+    if bcentral.credenciales() is None:
+        r.errores.append("conciliación BCCh no disponible: faltan BCCH_USER / BCCH_PASS")
+        return
+    try:
+        aviso = conciliacion.revisar(hoy, base)
+    except FuenteError as e:
+        r.errores.append(f"conciliación BCCh no disponible: {e}")
+        return
+    if aviso:
+        r.avisos.append(aviso)

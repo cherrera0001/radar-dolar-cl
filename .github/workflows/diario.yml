@@ -28,6 +28,9 @@ jobs:
       - run: pip install -e .
 
       - name: Actualizar series
+        env:
+          BCCH_USER: ${{ secrets.BCCH_USER }}
+          BCCH_PASS: ${{ secrets.BCCH_PASS }}
         run: radar actualizar
 
       - name: Avisos de salud de fuentes

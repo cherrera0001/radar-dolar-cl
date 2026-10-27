@@ -45,10 +45,10 @@ def cmd_actualizar(_: argparse.Namespace) -> int:
     est = reporte.leer_estado()
     ultimas = {s: v.index.max().date() for s in SERIES if not (v := almacen.leer(s)).empty}
     est["salud"], nuevos = salud.evaluar(est.get("salud", {}), r.fallidas, ultimas, hoy)
-    est["avisos_pendientes"] = [*est.get("avisos_pendientes", []), *nuevos]  # los envía `radar alerta`
+    est["avisos_pendientes"] = [*est.get("avisos_pendientes", []), *nuevos, *r.avisos]  # los envía `radar alerta`
     est["ultima_actualizacion"] = {"fecha": hoy.isoformat(), "errores": r.errores}
     reporte.guardar_estado(est)
-    for a in nuevos:
+    for a in [*nuevos, *r.avisos]:
         print(f"AVISO {a}")
     # Falla el job solo si no se pudo actualizar nada: un error parcial se informa por la salud de fuentes.
     return 1 if r.errores and not r.cambios else 0

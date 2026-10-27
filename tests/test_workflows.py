@@ -42,3 +42,10 @@ def test_las_acciones_externas_estan_fijadas_por_sha():
 
 def test_el_vigia_tiene_su_paso_de_aviso():
     assert "radar vigia --enviar" in _paso("vigia.yml", "Revisar la corrida diaria")
+
+
+def test_la_actualizacion_recibe_las_credenciales_de_bcch():
+    for workflow in ["diario.yml", "semanal.yml"]:
+        paso = _paso(workflow, "Actualizar series")
+        assert "BCCH_USER: ${{ secrets.BCCH_USER }}" in paso, workflow
+        assert "BCCH_PASS: ${{ secrets.BCCH_PASS }}" in paso, workflow
