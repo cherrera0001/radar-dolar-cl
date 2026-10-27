@@ -84,6 +84,6 @@ Fechas en America/Santiago. Commit base: `057ee1c` (rama `main`). Cada correcci�
 - R-15 · el gráfico reutiliza un archivo temporal.
 - R-13 · prueba que fija el grupo `radar-datos` en todo workflow que escribe `data/`.
 - R-07 · opción (a) adoptada; guarda de regresión en `tests/test_textos_publicos.py`. Pendiente de confirmación.
-- Un fallo de la prueba de privacidad (`reports/` no puede contener COMPRAR/VENDER/MANTENER ni `w*`) obligó a quitar esas
+- Un fallo de la prueba de privacidad (`reports/` no puede contener las órdenes del plan ni el peso objetivo) obligó a quitar esas
   palabras de RESUMEN.md. La guarda hizo lo que debía.
 - Estado final: 127 pruebas en verde en `audit/integracion`, `ruff` limpio.

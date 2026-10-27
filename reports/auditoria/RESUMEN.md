@@ -38,7 +38,7 @@ Commit base: `057ee1c` (`main`). Registro completo: `REGISTRO_RIESGOS.md`. Bitá
 
 ## Decisión tomada, pendiente de tu confirmación
 
-- **R-07.** Adopté la opción (a): COMPRAR, VENDER y MANTENER solo se envían al chat del dueño, como permite la constitución
+- **R-07.** Adopté la opción (a): las órdenes de compra, venta y mantención solo se envían al chat del dueño, como permite la constitución
   (I y VI). Los textos públicos no tienen imperativos y una prueba lo garantiza. Esto contradice la regla de "ningún texto
   al usuario" del prompt de auditoría. Si prefieres la opción (b), hay que reescribir `decision.py`.
 
