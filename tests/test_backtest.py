@@ -2,10 +2,11 @@ import pandas as pd
 import pytest
 
 from radar.backtest import backtest
+from radar.senales import DESFASE_DECISION
 
 
 def test_precio_constante_empata_con_dca():
-    idx = pd.bdate_range("2023-12-29", "2024-12-31")  # 29-dic aporta la señal previa del 1-ene
+    idx = pd.bdate_range("2023-12-27", "2024-12-31")  # 27 y 28-dic aportan la señal previa del 1-ene (DESFASE_DECISION días)
     precios = pd.Series(900.0, index=idx)
     r = backtest(precios, pd.Series(0.5, index=idx))
     assert r.mejora_pct == pytest.approx(0.0)
@@ -14,12 +15,12 @@ def test_precio_constante_empata_con_dca():
 
 
 def test_comprar_en_la_caida_le_gana_a_dca():
-    idx = pd.bdate_range("2023-12-29", "2024-03-31")
+    idx = pd.bdate_range("2023-12-27", "2024-03-31")
     precios = pd.Series(1000.0, index=idx)
     compuesto = pd.Series(0.0, index=idx)
     caida = idx[(idx.month == 1) & (idx.day >= 15)][0]
     precios[caida] = 800.0
-    compuesto[idx[idx.get_loc(caida) - 1]] = 0.5  # señal conocida al cierre del día anterior
+    compuesto[idx[idx.get_loc(caida) - DESFASE_DECISION]] = 0.5  # señal conocida DESFASE_DECISION días antes
     r = backtest(precios, compuesto)
     # enero: 50 USD (mitad base a 1000) + 62,5 USD (mitad táctica a 800) vs 100 USD en DCA
     assert r.meses_mejor == 1
@@ -27,18 +28,18 @@ def test_comprar_en_la_caida_le_gana_a_dca():
 
 
 def test_una_senal_no_se_puede_usar_el_mismo_dia_que_se_calcula():
-    idx = pd.bdate_range("2023-12-29", "2024-02-29")
+    idx = pd.bdate_range("2023-12-27", "2024-02-29")
     precios = pd.Series(1000.0, index=idx)
     compuesto = pd.Series(0.0, index=idx)
     dia = idx[(idx.month == 1) & (idx.day >= 15)][0]
     precios[dia] = 800.0
-    compuesto[dia] = 0.5  # la señal usa el precio de hoy: solo sirve desde mañana
+    compuesto[dia] = 0.5  # la señal usa el precio de hoy: solo sirve DESFASE_DECISION días después
     r = backtest(precios, compuesto)
     assert r.meses_mejor == 0  # mañana el precio volvió a 1000: no aprovecha la caída
 
 
 def test_sin_senal_compra_la_mitad_tactica_a_fin_de_mes():
-    idx = pd.bdate_range("2023-12-29", "2024-02-29")
+    idx = pd.bdate_range("2023-12-27", "2024-02-29")
     precios = pd.Series(1000.0, index=idx)
     precios[idx[(idx.month == 1)][-1]] = 1250.0  # fin de enero caro y sin señal: el radar pierde
     r = backtest(precios, pd.Series(0.0, index=idx))

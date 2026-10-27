@@ -18,7 +18,14 @@ LIMITE_TEXTO = 4000  # Telegram admite 4096; margen para no cortar caracteres
 
 
 class TelegramError(Exception):
-    pass
+    def __init__(self, mensaje: str, codigo: int | None = None):
+        super().__init__(mensaje)
+        self.codigo = codigo
+
+    @property
+    def permanente(self) -> bool:
+        """Un 4xx (salvo 429) no cambia al reintentar: el chat bloqueó al bot, no existe o el texto es inválido."""
+        return self.codigo is not None and 400 <= self.codigo < 500 and self.codigo != 429
 
 
 def _llamar(metodo: str, cuerpo: bytes, ctype: str, timeout: float = 30.0):
@@ -32,7 +39,7 @@ def _llamar(metodo: str, cuerpo: bytes, ctype: str, timeout: float = 30.0):
     except urllib.error.HTTPError as e:
         # Telegram explica el error en el cuerpo (p. ej. "chat not found"); el token nunca se muestra.
         detalle = e.read().decode("utf-8", errors="replace")[:200]
-        raise TelegramError(f"{metodo} HTTP {e.code}: {detalle}") from e
+        raise TelegramError(f"{metodo} HTTP {e.code}: {detalle}", codigo=e.code) from e
     except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as e:
         raise TelegramError(f"{metodo}: sin respuesta válida de Telegram ({type(e).__name__})") from e
     validar_respuesta(respuesta)
@@ -44,13 +51,37 @@ def _json(metodo: str, datos: dict, timeout: float = 30.0):
     return _llamar(metodo, cuerpo, "application/json", timeout)
 
 
+def partir(texto: str) -> list[str]:
+    """Parte el texto en trozos de como máximo LIMITE_TEXTO, cortando entre líneas cuando se puede."""
+    lineas = [trozo for linea in texto.split("\n") for trozo in _trozos(linea)]
+    partes, actual = [], ""
+    for linea in lineas:
+        candidato = linea if not actual else actual + "\n" + linea
+        if len(candidato) <= LIMITE_TEXTO:
+            actual = candidato
+        else:
+            partes.append(actual)
+            actual = linea
+    partes.append(actual)
+    return partes
+
+
+def _trozos(linea: str) -> list[str]:
+    """Una línea más larga que el límite se corta en pedazos; el caso normal no se toca."""
+    return [linea[i:i + LIMITE_TEXTO] for i in range(0, len(linea), LIMITE_TEXTO)] or [""]
+
+
 def mensaje(chat, texto: str, silencioso: bool = False):
-    return _json("sendMessage", {
-        "chat_id": chat,
-        "text": texto[:LIMITE_TEXTO],
-        "disable_web_page_preview": True,
-        "disable_notification": silencioso,
-    })
+    """Envía el texto completo, en partes si hace falta. Devuelve la respuesta de la última parte."""
+    respuesta = None
+    for parte in partir(texto):
+        respuesta = _json("sendMessage", {
+            "chat_id": chat,
+            "text": parte,
+            "disable_web_page_preview": True,
+            "disable_notification": silencioso,
+        })
+    return respuesta
 
 
 def enviar(texto: str, silencioso: bool = False) -> None:

@@ -19,6 +19,9 @@ import pandas as pd
 DIAS_ANIO = 252
 UMBRAL = 0.25  # |compuesto| >= UMBRAL -> BARATO / CARO
 MIN_SENALES = 3  # con menos señales disponibles no se emite compuesto
+# Días hábiles de desfase entre el compuesto y la decisión: la decisión del día d usa la señal de d − 2.
+# El insumo más lento es el cobre (2 días hábiles, almacen.DESFASE_MERCADO). Antes era 1 (#19, R-06).
+DESFASE_DECISION = 2
 
 SERIES = ["usdclp", "cobre_lb", "dxy", "tpm", "fed_funds", "vix"]
 

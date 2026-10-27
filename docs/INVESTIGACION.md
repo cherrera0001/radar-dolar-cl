@@ -23,13 +23,17 @@ entera, para que todas las estrategias gasten lo mismo.
 | Prueba 2020-01 a 2026-09 (81 meses) | $856,65 | −0,068% | **−0,207%** |
 
 **Re-ejecución con fechas de mercado alineadas (#19, 2026-10-23).** El histórico mostró que
-`usdclp` estaba fechado 1 día hábil después del mercado y `cobre_lb` 2 días; además la decisión
-del día *d* ahora usa solo la señal de *d−1*. Resultado:
+`usdclp` estaba fechado 1 día hábil después del mercado y `cobre_lb` 2 días. Con el desfase de
+la decisión de 1 día, la señal de cobre de la fila *t−1* usaba un dato que el mercado conoce
+recién en *t+1*. Corregido el 2026-10-27 (R-06): la decisión del día *d* usa la señal de *d−2*
+(`DESFASE_DECISION`). Resultado con ese desfase:
 
 | Período | Radar v0.1 | Acumulación elegida (misma combinación) |
 |---|---|---|
-| Diseño 2012-11 a 2019-12 | −0,112% | +0,193% |
-| Prueba 2020-01 a 2026-09 | −0,129% | **−0,041%** |
+| Diseño 2012-11 a 2019-12 | −0,117% | +0,171% |
+| Prueba 2020-01 a 2026-09 | −0,124% | **−0,083%** |
+
+(La versión anterior, con desfase de 1 día, daba −0,129% y −0,041% en la prueba.)
 
 La conclusión no cambia: ninguna regla le gana a DCA fuera de muestra.
 
