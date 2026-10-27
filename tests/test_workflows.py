@@ -1,5 +1,6 @@
 """Contratos de los workflows de GitHub Actions. Se leen como texto: el proyecto no depende de PyYAML."""
 
+import re
 from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parent.parent
@@ -28,3 +29,12 @@ def test_todo_push_de_datos_reintenta_tras_rebase():
         assert pushes, f"{workflow}: sin git push"
         for linea in pushes:
             assert "pull --rebase" in linea, f"{workflow}: {linea.strip()}"
+
+
+def test_las_acciones_externas_estan_fijadas_por_sha():
+    # Una etiqueta (@v4) puede moverse; un SHA no. Se exige en todos los `uses:` del repo.
+    for archivo in sorted(WORKFLOWS.glob("*.yml")):
+        for linea in archivo.read_text(encoding="utf-8").splitlines():
+            if linea.strip().startswith("- uses:") or linea.strip().startswith("uses:"):
+                ref = linea.split("@", 1)[1].split()[0]
+                assert re.fullmatch(r"[0-9a-f]{40}", ref), f"{archivo.name}: {linea.strip()}"
