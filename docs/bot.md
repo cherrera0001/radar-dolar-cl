@@ -9,6 +9,9 @@ Cualquiera puede consultar el bot en Telegram y ver el panel. Todo el contenido 
 |---|---|
 | `/ayuda` | Lista de comandos |
 | `/estado` | Semáforo de hoy, puntaje y señales, con la explicación de cada una |
+| `/porque` | Por qué el semáforo dice eso: las tres señales que más pesan y cuántas van en la misma dirección. Avisa si el dato está atrasado (en días hábiles) |
+| `/cambios` | Qué señales se movieron desde la última lectura guardada, con la fecha de esa lectura |
+| `/glosario` | Qué significan puntaje, semáforo, señal sin datos, percentil, valor justo, DCA y fecha del dato |
 | `/historia` | Qué hizo el dólar 3, 6 y 12 meses después de días con cada estado, frente a cualquier día |
 | `/prediccion` | Escenarios históricos desde hoy: mediana y rango del 80%. **Rango, no predicción** |
 | `/grafico` | Imagen del último año con el semáforo |
@@ -18,8 +21,9 @@ Cualquiera puede consultar el bot en Telegram y ver el panel. Todo el contenido 
 
 ## Cuándo llega la respuesta
 
-El bot revisa mensajes cada 30 minutos (GitHub Actions). Una consulta se responde en la siguiente
-revisión: hasta unos 30 minutos después. Cada corrida atiende hasta 100 mensajes.
+El bot escucha mensajes de forma continua: cada corrida de GitHub Actions dura unas 5,5 horas y, al
+terminar, dispara la siguiente. Una consulta normalmente se responde en segundos. El cron cada 30 minutos
+solo sirve de vigía: si la cadena se corta, la reinicia. Cada corrida atiende hasta 1000 mensajes.
 
 ## Límites
 
@@ -45,5 +49,7 @@ correlación y salud de datos. Para publicarlo en Streamlit Community Cloud:
 ## Cómo se ejecuta
 
 - `radar bot` atiende en forma continua (uso local).
-- `radar bot --una-vez` atiende lo pendiente y termina (lo que usa GitHub Actions).
+- `radar bot --una-vez` atiende lo pendiente y termina.
+- GitHub Actions (`bot.yml`) usa `radar bot --durante 19800 --publicar`: escucha 5,5 horas y guarda el offset en `data/bot.json`.
 - Requiere el secreto `TELEGRAM_BOT_TOKEN`.
+- Los textos de lectura (`/porque`, `/cambios`, `/glosario`) salen de `radar/lectura.py`, la misma función que usa el tablero.
