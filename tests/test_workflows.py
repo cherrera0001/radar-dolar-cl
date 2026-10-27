@@ -38,3 +38,7 @@ def test_las_acciones_externas_estan_fijadas_por_sha():
             if linea.strip().startswith("- uses:") or linea.strip().startswith("uses:"):
                 ref = linea.split("@", 1)[1].split()[0]
                 assert re.fullmatch(r"[0-9a-f]{40}", ref), f"{archivo.name}: {linea.strip()}"
+
+
+def test_el_vigia_tiene_su_paso_de_aviso():
+    assert "radar vigia --enviar" in _paso("vigia.yml", "Revisar la corrida diaria")
