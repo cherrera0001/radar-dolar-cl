@@ -152,6 +152,21 @@ def cmd_accion(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_vigia(args: argparse.Namespace) -> int:
+    """Avisa si la corrida diaria no dejó registro de hoy. Corre aparte: no depende de que `diario` haya corrido."""
+    aviso = salud.vigilancia(reporte.leer_estado(), date.today())
+    if aviso is None:
+        print("Vigía: la corrida diaria está al día.")
+        return 0
+    print(aviso)
+    if args.enviar:
+        if envios.enviar_una_vez("vigia", aviso, telegram.enviar):
+            print("[enviado a Telegram]")
+        else:
+            print("[sin envío: el mismo aviso ya se envió]")
+    return 0
+
+
 def cmd_investigar(_: argparse.Namespace) -> int:
     """Walk-forward (#9/#10): parámetros elegidos con el diseño, resultado medido en la prueba."""
     df, senales, _ = _cargar()
@@ -230,6 +245,9 @@ def main(argv: list[str] | None = None) -> int:
         sp.add_argument("--enviar", action="store_true", help="enviar a Telegram")
         sp.set_defaults(f=f)
     sub.add_parser("investigar", help="walk-forward: diseño hasta 2019, prueba desde 2020").set_defaults(f=cmd_investigar)
+    sp = sub.add_parser("vigia", help="avisa si la corrida diaria no dejó registro de hoy")
+    sp.add_argument("--enviar", action="store_true", help="envía al dueño, una vez por día")
+    sp.set_defaults(f=cmd_vigia)
     sub.add_parser("prueba-telegram", help="envía un mensaje de prueba").set_defaults(f=cmd_prueba)
     sp = sub.add_parser("accion", help="instrucción mensual del plan (solo al dueño, días 1 a 5)")
     sp.add_argument("--enviar", action="store_true", help="envía al chat del dueño, una vez por mes")

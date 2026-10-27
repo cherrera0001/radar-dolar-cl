@@ -8,7 +8,7 @@ Dos problemas distintos:
 
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, timedelta
 
 from .almacen import antiguedad_max
 
@@ -49,3 +49,27 @@ def evaluar(previo: dict, fallidas: set[str], ultimas: dict[str, date], hoy: dat
 
         nuevo[serie] = {"fallas": fallas, "aviso_falla": aviso_falla, "aviso_atraso": aviso_atraso}
     return nuevo, avisos
+
+
+def ultimo_dia_habil(hoy: date) -> date:
+    """El día hábil (lunes a viernes) en que el job diario debió correr por última vez."""
+    d = hoy
+    while d.weekday() >= 5:
+        d -= timedelta(days=1)
+    return d
+
+
+def vigilancia(estado: dict, hoy: date) -> str | None:
+    """Aviso si la última corrida registrada en data/estado.json no es del último día hábil.
+
+    Mide el registro de la corrida (`ultima_actualizacion`), no la calidad de los datos: eso lo cubre `evaluar`.
+    Cubre el caso que `evaluar` no ve: el cron no corrió y no hay nada que evaluar.
+    """
+    esperado = ultimo_dia_habil(hoy)
+    registrado = (estado.get("ultima_actualizacion") or {}).get("fecha")
+    if registrado is None:
+        return f"🟠 Sin registro de actualización: el job diario debió correr el {esperado.isoformat()}."
+    if date.fromisoformat(registrado) < esperado:
+        return (f"🟠 El job diario no corrió el {esperado.isoformat()}: la última corrida registrada es del "
+                f"{registrado}. Revisa Actions (diario.yml).")
+    return None
