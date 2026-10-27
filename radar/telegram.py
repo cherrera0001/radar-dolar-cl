@@ -51,13 +51,37 @@ def _json(metodo: str, datos: dict, timeout: float = 30.0):
     return _llamar(metodo, cuerpo, "application/json", timeout)
 
 
+def partir(texto: str) -> list[str]:
+    """Parte el texto en trozos de como máximo LIMITE_TEXTO, cortando entre líneas cuando se puede."""
+    lineas = [trozo for linea in texto.split("\n") for trozo in _trozos(linea)]
+    partes, actual = [], ""
+    for linea in lineas:
+        candidato = linea if not actual else actual + "\n" + linea
+        if len(candidato) <= LIMITE_TEXTO:
+            actual = candidato
+        else:
+            partes.append(actual)
+            actual = linea
+    partes.append(actual)
+    return partes
+
+
+def _trozos(linea: str) -> list[str]:
+    """Una línea más larga que el límite se corta en pedazos; el caso normal no se toca."""
+    return [linea[i:i + LIMITE_TEXTO] for i in range(0, len(linea), LIMITE_TEXTO)] or [""]
+
+
 def mensaje(chat, texto: str, silencioso: bool = False):
-    return _json("sendMessage", {
-        "chat_id": chat,
-        "text": texto[:LIMITE_TEXTO],
-        "disable_web_page_preview": True,
-        "disable_notification": silencioso,
-    })
+    """Envía el texto completo, en partes si hace falta. Devuelve la respuesta de la última parte."""
+    respuesta = None
+    for parte in partir(texto):
+        respuesta = _json("sendMessage", {
+            "chat_id": chat,
+            "text": parte,
+            "disable_web_page_preview": True,
+            "disable_notification": silencioso,
+        })
+    return respuesta
 
 
 def enviar(texto: str, silencioso: bool = False) -> None:
