@@ -1,8 +1,7 @@
 {
  "ultima_actualizacion": {
-  "fecha": "2026-10-28",
+  "fecha": "2026-10-29",
   "errores": [
-   "no se pudo leer https://mindicador.cl/api/dolar/2026: The read operation timed out",
    "no se pudo leer https://mindicador.cl/api/libra_cobre/2026: The read operation timed out",
    "no se pudo leer https://mindicador.cl/api/tpm/2026: The read operation timed out",
    "conciliación BCCh no disponible: faltan BCCH_USER / BCCH_PASS"
@@ -10,7 +9,7 @@
  },
  "salud": {
   "cobre_lb": {
-   "fallas": 1,
+   "fallas": 2,
    "aviso_falla": false,
    "aviso_atraso": false
   },
@@ -25,13 +24,13 @@
    "aviso_atraso": false
   },
   "tpm": {
-   "fallas": 5,
+   "fallas": 6,
    "aviso_falla": true,
    "aviso_atraso": false
   },
   "usdclp": {
-   "fallas": 5,
-   "aviso_falla": true,
+   "fallas": 0,
+   "aviso_falla": false,
    "aviso_atraso": false
   },
   "vix": {
@@ -42,14 +41,14 @@
  },
  "avisos_pendientes": [],
  "estado": "CARO",
- "fecha": "2026-10-22",
- "compuesto": -0.5835613489285245,
+ "fecha": "2026-10-28",
+ "compuesto": -0.5493259008302801,
  "senales": {
   "valor_justo": -1.0,
-  "valoracion": -0.992,
-  "cobre": -0.292,
-  "dxy": 0.074,
+  "valoracion": -0.913,
+  "cobre": -0.421,
+  "dxy": 0.088,
   "tasas": 0.16,
-  "riesgo": -0.152
+  "riesgo": 0.173
  }
 }
