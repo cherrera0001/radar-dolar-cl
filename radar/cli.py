@@ -4,13 +4,14 @@ from __future__ import annotations
 
 import argparse
 import csv
+import os
 import sys
 from datetime import date, timedelta
 from pathlib import Path
 
 import pandas as pd
 
-from . import almacen, decision, envios, investigacion, reporte, salud, telegram
+from . import almacen, bitacora, decision, envios, investigacion, reporte, salud, telegram
 from .actualizar import actualizar
 from .backtest import backtest
 from .fuentes import bcentral
@@ -42,6 +43,8 @@ def cmd_actualizar(_: argparse.Namespace) -> int:
         print(f"{serie}: {n} fechas nuevas o revisadas")
     for e in r.errores:
         print(f"ERROR {e}")
+    for n in r.notas:
+        print(f"NOTA {n}")
     est = reporte.leer_estado()
     ultimas = {s: v.index.max().date() for s in SERIES if not (v := almacen.leer(s)).empty}
     est["salud"], nuevos = salud.evaluar(est.get("salud", {}), r.fallidas, ultimas, hoy)
@@ -50,6 +53,9 @@ def cmd_actualizar(_: argparse.Namespace) -> int:
     reporte.guardar_estado(est)
     for a in [*nuevos, *r.avisos]:
         print(f"AVISO {a}")
+    if (b := bitacora.actual()):
+        b.detalle(errores=len(r.errores), avisos=len(nuevos) + len(r.avisos), notas=len(r.notas),
+                  cambios=sum(r.cambios.values()))
     # Falla el job solo si no se pudo actualizar nada: un error parcial se informa por la salud de fuentes.
     return 1 if r.errores and not r.cambios else 0
 
@@ -115,7 +121,13 @@ def cmd_alerta(args: argparse.Namespace) -> int:
     if not avisos:
         print(f"Sin avisos de salud: {a['estado']} ({a['fecha']}).")
     else:
-        texto = "⚠️ Radar Dólar · salud de fuentes\n" + "\n".join(avisos)
+        lineas = ["⚠️ Radar Dólar · salud de fuentes", *avisos]
+        errores = (est.get("ultima_actualizacion") or {}).get("errores") or []
+        if errores:
+            lineas += ["", "Errores de la última corrida:"] + [f"· {e}" for e in errores[:6]]
+        if url := os.environ.get("RADAR_RUN_URL", "").strip():
+            lineas += ["", f"Corrida: {url}"]
+        texto = "\n".join(lineas)
         if not args.enviar:
             print(texto)
             return 0  # sin envío no se marcan como enviados
@@ -128,6 +140,29 @@ def cmd_alerta(args: argparse.Namespace) -> int:
                 "senales": reporte.valores_senales(a["fila"]), "avisos_pendientes": []})
     est.pop("errores_avisados", None)
     reporte.guardar_estado(est)
+    return 0
+
+
+def cmd_caida(args: argparse.Namespace) -> int:
+    """Avisa al dueño cuando una corrida de un workflow falla. Lo llaman los workflows con
+    `if: always()` y el outcome del paso crítico: sin esto, un job en rojo solo se ve entrando
+    a Actions, y el dueño se entera por los mensajes de salud días después (si es que hay)."""
+    if args.estado != "failure":
+        print(f"{args.componente}: corrida OK.")
+        return 0
+    hoy = date.today()
+    detalle = f"🔴 Radar Dólar · {args.componente}: la corrida de hoy ({hoy:%d-%m}) falló."
+    if args.url:
+        detalle += f" Revisa {args.url}"
+    detalle += " (un aviso por día; se repite mientras siga fallando)."
+    print(detalle)
+    if args.enviar:
+        # La huella no incluye la URL: cambia entre corridas y el mismo día no debe reavisar.
+        if envios.enviar_una_vez(f"caida:{args.componente}:{hoy:%Y-%m-%d}", f"{args.componente}|fallo",
+                                 lambda _: telegram.enviar(detalle)):
+            print("[enviado a Telegram]")
+        else:
+            print("[sin envío: ya se avisó hoy]")
     return 0
 
 
@@ -231,6 +266,8 @@ def cmd_bot(args: argparse.Namespace) -> int:
 
     atendidos = ciclo(args.una_vez, durante=args.durante, publicar=args.publicar)
     print(f"consultas atendidas: {atendidos}")
+    if (b := bitacora.actual()):
+        b.detalle(atendidos=atendidos)
     return 0
 
 
@@ -257,19 +294,37 @@ def main(argv: list[str] | None = None) -> int:
     sp.add_argument("--durante", type=float, default=0, help="escucha durante N segundos (long polling)")
     sp.add_argument("--publicar", action="store_true", help="commitea data/bot.json tras cada respuesta")
     sp.set_defaults(f=cmd_bot)
+    sp = sub.add_parser("caida", help="avisa al dueño si la corrida de un workflow falló (lo usan los workflows)")
+    sp.add_argument("--componente", required=True, choices=["diario", "bot", "semanal", "vigia"])
+    sp.add_argument("--estado", required=True, choices=["success", "failure"], help="outcome del paso crítico")
+    sp.add_argument("--url", default="", help="enlace a la corrida de Actions")
+    sp.add_argument("--enviar", action="store_true", help="envía a Telegram (una vez al día)")
+    sp.set_defaults(f=cmd_caida)
     sp = sub.add_parser("bcch", help="API del Banco Central: prueba de conexión o catálogo de series")
     sp.add_argument("accion", choices=["prueba", "catalogo"])
     sp.add_argument("--frecuencia", default="DAILY", choices=["DAILY", "MONTHLY", "QUARTERLY", "ANNUAL"])
     sp.set_defaults(f=cmd_bcch)
     args = p.parse_args(argv)
+    b = bitacora.iniciar(args.cmd)
     try:
-        return args.f(args)
+        codigo = args.f(args)
     except telegram.TelegramError as e:
         print(f"ERROR Telegram: {e}", file=sys.stderr)
+        b.registrar(2, error=str(e))
         return 2
     except FuenteError as e:
         print(f"ERROR fuente: {e}", file=sys.stderr)
+        b.registrar(3, error=str(e))
         return 3
+    except SystemExit as e:
+        # sys.exit("mensaje") se usa para cortar con error legible (p. ej. sin datos).
+        b.registrar(e.code if isinstance(e.code, int) else 1)
+        raise
+    except Exception as e:
+        b.registrar(99, error=f"{type(e).__name__}: {e}")
+        raise
+    b.registrar(codigo or 0)
+    return codigo
 
 
 if __name__ == "__main__":

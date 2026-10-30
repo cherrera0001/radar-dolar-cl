@@ -24,21 +24,27 @@ def _leer(ruta: Path) -> dict:
     return json.loads(ruta.read_text(encoding="utf-8")) if ruta.exists() else {}
 
 
-def ya_enviado(clave: str, contenido: str, ruta: Path = ARCHIVO_ENVIOS) -> bool:
-    return _leer(ruta).get(clave) == huella(contenido)
+def _ruta(ruta: Path | None) -> Path:
+    # Se resuelve en la llamada (no como default) para que los tests puedan redirigir el archivo.
+    return ruta if ruta is not None else ARCHIVO_ENVIOS
 
 
-def registrar(clave: str, contenido: str, ruta: Path = ARCHIVO_ENVIOS) -> None:
-    datos = _leer(ruta)
+def ya_enviado(clave: str, contenido: str, ruta: Path | None = None) -> bool:
+    return _leer(_ruta(ruta)).get(clave) == huella(contenido)
+
+
+def registrar(clave: str, contenido: str, ruta: Path | None = None) -> None:
+    destino = _ruta(ruta)
+    datos = _leer(destino)
     datos[clave] = huella(contenido)
     while len(datos) > MAXIMO_CLAVES:
         datos.pop(next(iter(datos)))  # conserva las claves más recientes (orden de inserción)
-    ruta.parent.mkdir(parents=True, exist_ok=True)
-    ruta.write_text(json.dumps(datos, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+    destino.parent.mkdir(parents=True, exist_ok=True)
+    destino.write_text(json.dumps(datos, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
 
 
 def enviar_una_vez(clave: str, contenido: str, enviar: Callable[[str], None],
-                   ruta: Path = ARCHIVO_ENVIOS) -> bool:
+                   ruta: Path | None = None) -> bool:
     """Envía si no se envió antes con el mismo contenido. Devuelve True si envió."""
     if ya_enviado(clave, contenido, ruta):
         return False

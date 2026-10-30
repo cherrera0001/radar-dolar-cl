@@ -55,3 +55,25 @@ def test_todo_workflow_que_escribe_datos_comparte_el_grupo_de_concurrencia():
     # data/envios.json y data/estado.json se escriben sin bloqueo: solo el grupo de Actions los protege.
     for workflow in ["diario.yml", "semanal.yml", "bcch.yml", "vigia.yml"]:
         assert "group: radar-datos" in (WORKFLOWS / workflow).read_text(encoding="utf-8"), workflow
+
+
+def test_cada_job_avisa_su_caida_con_el_outcome_del_paso_critico():
+    # Un job en rojo solo se ve entrando a Actions; el paso avisa al dueño una vez al día.
+    casos = {"diario.yml": ("job", "diario"), "bot.yml": ("bot", "bot"),
+             "vigia.yml": ("vigía", "vigia"), "semanal.yml": ("resumen", "semanal")}
+    for workflow, (nombre, componente) in casos.items():
+        paso = _paso(workflow, f"Aviso de caída del {nombre}")
+        assert "if: always()" in paso, workflow
+        assert f"radar caida --componente {componente}" in paso, workflow
+        assert "--estado ${{ steps." in paso, workflow
+
+
+def test_el_bot_espera_antes_de_reencolar_tras_una_caida():
+    # Reencolar de inmediato tras un fallo amplifica el outage en una ráfaga de corridas (2026-10-29).
+    paso = _paso("bot.yml", "Encadenar la siguiente corrida")
+    assert "steps.escuchar.outcome" in paso
+    assert "sleep 240" in paso
+
+
+def test_los_avisos_de_salud_llevan_la_url_de_la_corrida():
+    assert "RADAR_RUN_URL" in _paso("diario.yml", "Avisos de salud de fuentes")

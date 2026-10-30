@@ -100,3 +100,24 @@ def test_el_mensaje_de_error_no_muestra_la_consulta(monkeypatch, sin_espera):
     with pytest.raises(FuenteError) as info:
         base.http_get("https://ejemplo.cl/x?user=u&pass=claveSecreta")
     assert "claveSecreta" not in str(info.value)
+
+
+def test_usa_cabeceras_de_navegador(monkeypatch, sin_espera):
+    # mindicador.cl corta conexiones con cara de bot; el cliente debe parecer navegador.
+    llamadas = _urlopen_con(monkeypatch, [b"ok"])
+    base.http_get("https://ejemplo.cl/x")
+    req = llamadas[0]
+    assert req.get_header("User-agent").startswith("Mozilla/5.0")
+    assert req.get_header("Accept") == base.CABECERAS["Accept"]
+
+
+def test_el_backoff_tiene_tope_y_jitter():
+    esperas = [base.espera_reintento(i) for i in range(12)]
+    assert all(base.ESPERA_BASE_SEGUNDOS <= e < base.ESPERA_MAX_SEGUNDOS * 1.5 for e in esperas)
+    assert esperas[0] < base.ESPERA_BASE_SEGUNDOS * 1.5  # el primer fallo espera poco
+    assert esperas[-1] >= base.ESPERA_MAX_SEGUNDOS  # el tope se alcanza y se mantiene
+
+
+def test_hay_mas_de_tres_intentos_para_aguantar_outages_cortos():
+    # mindicador.cl falló ~4 de cada 5 conexiones el 2026-10-30; con 3 intentos la serie se caía seguido.
+    assert base.REINTENTOS >= 4

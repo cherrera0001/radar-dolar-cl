@@ -25,6 +25,11 @@ El bot escucha mensajes de forma continua: cada corrida de GitHub Actions dura u
 terminar, dispara la siguiente. Una consulta normalmente se responde en segundos. El cron cada 30 minutos
 solo sirve de vigía: si la cadena se corta, la reinicia. Cada corrida atiende hasta 1000 mensajes.
 
+Si Telegram tiene un outage (p. ej. `getUpdates` 502), la corrida no muere de inmediato: espera con
+backoff (30 s, 60 s, 120 s…) y reintenta hasta 5 veces seguidas. Solo si el outage se prolonga, la
+corrida termina en rojo, el workflow avisa al dueño (un mensaje al día) y encola la siguiente corrida
+esperando 4 minutos, para no amplificar la caída en una ráfaga de reintentos.
+
 ## Límites
 
 - Hasta **5 consultas cada 10 minutos por chat**. Al pasar el límite, el bot avisa una vez.

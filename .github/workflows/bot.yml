@@ -22,8 +22,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 350
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: "3.12"
           cache: pip
@@ -36,17 +36,26 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
       - name: Escuchar Telegram (5,5 h)
+        id: escuchar
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           DASHBOARD_URL: ${{ vars.DASHBOARD_URL }}
         run: radar bot --durante 19800 --publicar
 
-      - name: Versionar offset (solo si cambió)
+      - name: Aviso de caída del bot
+        if: always()  # la cadena se reintenta sola; este aviso le dice al dueño que Telegram lleva un rato caído
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          RADAR_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: radar caida --componente bot --estado ${{ steps.escuchar.outcome }} --url "$RADAR_RUN_URL" --enviar
+
+      - name: Versionar offset y bitácora (solo si cambió)
         if: always()
         run: |
           git config user.name "radar-dolar[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/bot.json
+          git add data/bot.json data/ejecuciones.jsonl
           git diff --cached --quiet || git commit -m "bot: offset $(date -u +%F-%H%M)"
           git push || (git pull --rebase -X theirs -q && git push)
 
@@ -54,4 +63,8 @@ jobs:
         if: always()
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh workflow run bot.yml --repo "${{ github.repository }}"
+        run: |
+          # Tras una caída, esperar antes de reencolar: si Telegram sigue en outage, la ráfaga de
+          # reintentos inmediatos amplifica el problema (aprendizaje 2026-10-29: 10 corridas en 7 min).
+          if [ "${{ steps.escuchar.outcome }}" = "failure" ]; then sleep 240; fi
+          gh workflow run bot.yml --repo "${{ github.repository }}"

@@ -6,7 +6,9 @@ descriptivos; nunca con recomendaciones personales.
 Privacidad: no se guarda quién escribe. Lo único persistente es el offset de Telegram
 (data/bot.json). Los límites por chat viven en memoria durante la corrida.
 
-Ejecución: GitHub Actions cada 30 minutos (`radar bot --una-vez`) o en local (`radar bot`).
+Ejecución: GitHub Actions en cadena (`radar bot --durante 19800 --publicar`, cada corrida
+dispara la siguiente; el cron cada 30 min es solo un vigía que reinicia la cadena si se corta).
+En local: `radar bot --una-vez` atiende lo pendiente y termina.
 """
 
 from __future__ import annotations
@@ -34,6 +36,8 @@ CONSULTAS_POR_VENTANA = 5  # por chat
 VENTANA_SEGUNDOS = 600
 MENSAJES_POR_CORRIDA = 1000  # tope por corrida; la cadena de corridas sigue atendiendo
 ESPERA_LARGA = 25  # segundos de long polling en modo local
+POLLING_FALLOS_MAX = 5  # fallos seguidos de getUpdates antes de rendirse y dejar que la cadena reencole
+ESPERA_TRAS_FALLO_SEG = 30.0  # backoff inicial tras un fallo de Telegram; se duplica por fallo
 
 COMANDOS: dict[str, tuple] = {}  # nombre -> (función, descripción)
 
@@ -265,16 +269,40 @@ def ciclo(una_vez: bool, durante: float = 0, publicar: bool = False) -> int:
 
     `durante` (segundos) hace long polling hasta ese plazo: así una corrida responde en segundos
     en lugar de esperar al próximo cron. `una_vez` procesa lo pendiente y termina.
+
+    Un fallo transitorio de Telegram (5xx, cortes) no mata la corrida: se espera con backoff y se
+    reintenta, porque esos outages duran minutos y con la salida inmediata la cadena de Actions
+    disparaba una corrida nueva cada ~45 s en ráfaga (aprendizaje 2026-10-29: 10 corridas falladas
+    en 7 minutos durante un 502 de Telegram). Solo tras POLLING_FALLOS_MAX seguidos se rinde y
+    lanza TelegramError, para que el run quede en rojo y el dueño se entere.
     """
     offset = _leer_offset()
     limite = Limite()
     avisados: set = set()
     atendidos = 0
+    fallos_polling = 0
     fin = time.monotonic() + durante if durante else None
     while True:
         if fin is not None and time.monotonic() >= fin:
             return atendidos
-        updates = telegram.actualizaciones(offset, espera=0 if una_vez else ESPERA_LARGA)
+        try:
+            updates = telegram.actualizaciones(offset, espera=0 if una_vez else ESPERA_LARGA)
+            fallos_polling = 0
+        except telegram.TelegramError as e:
+            if e.permanente:
+                # 4xx (salvo 429): reintentar no cambia nada; que lo vea el operador.
+                raise
+            fallos_polling += 1
+            if fallos_polling >= POLLING_FALLOS_MAX:
+                raise telegram.TelegramError(
+                    f"getUpdates falló {fallos_polling} veces seguidas: {e}") from e
+            espera = ESPERA_TRAS_FALLO_SEG * 2 ** (fallos_polling - 1)
+            print(f"Telegram falló (reintento {fallos_polling}/{POLLING_FALLOS_MAX}): {e}; "
+                  f"espero {espera:.0f}s", file=sys.stderr)
+            if fin is not None and time.monotonic() + espera >= fin:
+                return atendidos
+            time.sleep(espera)
+            continue
         for u in updates:
             offset = u["update_id"] + 1
             msg = u.get("message") or {}

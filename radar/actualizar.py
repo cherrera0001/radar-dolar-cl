@@ -7,7 +7,7 @@ from datetime import date, timedelta
 from pathlib import Path
 
 from . import almacen, conciliacion
-from .fuentes import bcentral, fred, mindicador
+from .fuentes import bcentral, fred, mindicador, respaldo
 from .fuentes.base import FuenteError
 
 ANIO_INICIO = 2012  # historia suficiente para ventanas de 2 años + backtest de ~12 años
@@ -26,7 +26,8 @@ class Resultado:
     cambios: dict[str, int] = field(default_factory=dict)
     errores: list[str] = field(default_factory=list)
     fallidas: set[str] = field(default_factory=set)  # series cuya descarga falló (para radar/salud.py)
-    avisos: list[str] = field(default_factory=list)  # divergencias entre fuentes (radar/conciliacion.py)
+    avisos: list[str] = field(default_factory=list)  # divergencias entre fuentes y respaldos en uso
+    notas: list[str] = field(default_factory=list)  # informativo: va al log, no cuenta para el exit code
 
 
 def actualizar(hoy: date | None = None, base: Path = almacen.DIR_SERIES) -> Resultado:
@@ -42,9 +43,11 @@ def actualizar(hoy: date | None = None, base: Path = almacen.DIR_SERIES) -> Resu
             for anio in anios:
                 puntos += mindicador.descargar(serie, anio)
         except FuenteError as e:
-            r.errores.append(str(e))
-            r.fallidas.add(serie)
-            continue
+            puntos = _respaldo_usdclp(serie, r, e)
+            if puntos is None:
+                r.errores.append(str(e))
+                r.fallidas.add(serie)
+                continue
         r.cambios[serie] = almacen.guardar(_hasta(puntos, hoy), base).get(serie, 0)
 
     for serie in fred.SERIES:
@@ -57,6 +60,28 @@ def actualizar(hoy: date | None = None, base: Path = almacen.DIR_SERIES) -> Resu
         r.cambios[serie] = almacen.guardar(_hasta(puntos, hoy), base).get(serie, 0)
     _conciliar(hoy, base, r)
     return r
+
+
+def _respaldo_usdclp(serie: str, r: Resultado, original: FuenteError) -> list | None:
+    """Si mindicador.cl falla para usdclp, completa con el respaldo en vez de congelar la serie.
+
+    Devuelve los puntos del respaldo o None si no aplica (otra serie, respaldo desactivado o
+    el respaldo también falló: en ese caso manda el error original, que es el dato relevante).
+    La serie NO entra a `fallidas`: el dato quedó al día. El aviso tiene texto estable para que
+    la deduplicación de envíos no lo repita mientras la situación no cambie; el error concreto
+    va a las notas del log.
+    """
+    if serie != "usdclp" or not respaldo.activado():
+        return None
+    try:
+        puntos = respaldo.descargar()
+    except FuenteError as e:
+        r.notas.append(f"usdclp: el respaldo {respaldo.FUENTE} tampoco respondió: {e}")
+        return None
+    r.notas.append(f"usdclp: mindicador.cl falló ({original}); se completó con {respaldo.FUENTE}")
+    r.avisos.append(f"🟠 usdclp: mindicador.cl no respondió; se usa el respaldo {respaldo.FUENTE} "
+                    f"(aproximado al dólar observado)")
+    return puntos
 
 
 def _conciliar(hoy: date, base: Path, r: Resultado) -> None:
