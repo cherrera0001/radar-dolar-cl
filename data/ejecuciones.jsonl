@@ -1,0 +1,14 @@
+{"ts": "2026-10-30T18:56:58+00:00", "comando": "bcch", "codigo": 1, "duracion_s": 0.0, "commit": "fd5b7c8"}
+{"ts": "2026-10-30T18:56:58+00:00", "comando": "bcch", "codigo": 3, "duracion_s": 0.0, "commit": "fd5b7c8", "error": "bcentral.cl: Codigo=-5 'Invalid username or password'"}
+{"ts": "2026-10-30T19:00:27+00:00", "comando": "bcch", "codigo": 1, "duracion_s": 0.0, "commit": "fd5b7c8"}
+{"ts": "2026-10-30T19:00:27+00:00", "comando": "bcch", "codigo": 3, "duracion_s": 0.0, "commit": "fd5b7c8", "error": "bcentral.cl: Codigo=-5 'Invalid username or password'"}
+{"ts": "2026-10-30T19:02:02+00:00", "comando": "bcch", "codigo": 1, "duracion_s": 0.0, "commit": "fd5b7c8"}
+{"ts": "2026-10-30T19:02:02+00:00", "comando": "bcch", "codigo": 3, "duracion_s": 0.0, "commit": "fd5b7c8", "error": "bcentral.cl: Codigo=-5 'Invalid username or password'"}
+{"ts": "2026-10-30T19:02:54+00:00", "comando": "bcch", "codigo": 1, "duracion_s": 0.0, "commit": "fd5b7c8"}
+{"ts": "2026-10-30T19:02:54+00:00", "comando": "bcch", "codigo": 3, "duracion_s": 0.0, "commit": "fd5b7c8", "error": "bcentral.cl: Codigo=-5 'Invalid username or password'"}
+{"ts": "2026-10-30T19:03:47+00:00", "comando": "bcch", "codigo": 1, "duracion_s": 0.0, "commit": "fd5b7c8"}
+{"ts": "2026-10-30T19:03:47+00:00", "comando": "bcch", "codigo": 3, "duracion_s": 0.0, "commit": "fd5b7c8", "error": "bcentral.cl: Codigo=-5 'Invalid username or password'"}
+{"ts": "2026-10-30T19:09:13+00:00", "comando": "caida", "codigo": 0, "duracion_s": 0.0, "commit": "fd5b7c8"}
+{"ts": "2026-10-30T19:09:13+00:00", "comando": "caida", "codigo": 0, "duracion_s": 0.0, "commit": "fd5b7c8"}
+{"ts": "2026-10-30T19:31:51+00:00", "comando": "bcch", "codigo": 1, "duracion_s": 0.0, "commit": "fd5b7c8"}
+{"ts": "2026-10-30T19:31:51+00:00", "comando": "bcch", "codigo": 3, "duracion_s": 0.0, "commit": "fd5b7c8", "error": "bcentral.cl: Codigo=-5 'Invalid username or password'"}
