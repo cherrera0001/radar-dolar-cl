@@ -14,5 +14,5 @@
 {"ts": "2026-10-30T19:31:51+00:00", "comando": "bcch", "codigo": 3, "duracion_s": 0.0, "commit": "fd5b7c8", "error": "bcentral.cl: Codigo=-5 'Invalid username or password'"}
 {"ts": "2026-10-30T19:48:12+00:00", "comando": "vigia", "codigo": 0, "duracion_s": 0.0, "commit": "c8ae9cc"}
 {"ts": "2026-10-30T19:48:13+00:00", "comando": "caida", "codigo": 0, "duracion_s": 0.0, "commit": "c8ae9cc"}
-{"ts": "2026-10-31T00:17:16+00:00", "comando": "vigia", "codigo": 0, "duracion_s": 0.0, "commit": "ac8b60a"}
-{"ts": "2026-10-31T00:17:16+00:00", "comando": "caida", "codigo": 0, "duracion_s": 0.0, "commit": "ac8b60a"}
+{"ts": "2026-10-30T20:53:50+00:00", "comando": "bot", "codigo": 0, "duracion_s": 19804.82, "commit": "ac8b60a", "atendidos": 0}
+{"ts": "2026-10-31T02:23:55+00:00", "comando": "caida", "codigo": 0, "duracion_s": 0.0, "commit": "ac8b60a"}
