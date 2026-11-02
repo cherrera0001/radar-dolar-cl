@@ -1,55 +1,55 @@
 {
  "ultima_actualizacion": {
-  "fecha": "2026-10-30",
+  "fecha": "2026-11-02",
   "errores": [
-   "no se pudo leer https://mindicador.cl/api/dolar/2026: Remote end closed connection without response",
-   "no se pudo leer https://mindicador.cl/api/libra_cobre/2026: <urlopen error [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1010)>",
-   "no se pudo leer https://mindicador.cl/api/tpm/2026: The read operation timed out",
+   "no se pudo leer https://fred.stlouisfed.org/graph/fredgraph.csv: The read operation timed out",
+   "no se pudo leer https://fred.stlouisfed.org/graph/fredgraph.csv: The read operation timed out",
+   "no se pudo leer https://fred.stlouisfed.org/graph/fredgraph.csv: The read operation timed out",
    "conciliación BCCh no disponible: faltan BCCH_USER / BCCH_PASS"
   ]
  },
  "salud": {
   "cobre_lb": {
-   "fallas": 3,
-   "aviso_falla": true,
+   "fallas": 0,
+   "aviso_falla": false,
    "aviso_atraso": false
   },
   "dxy": {
-   "fallas": 0,
-   "aviso_falla": false,
-   "aviso_atraso": false
-  },
-  "fed_funds": {
-   "fallas": 0,
-   "aviso_falla": false,
-   "aviso_atraso": false
-  },
-  "tpm": {
-   "fallas": 7,
-   "aviso_falla": true,
-   "aviso_atraso": false
-  },
-  "usdclp": {
    "fallas": 1,
    "aviso_falla": false,
    "aviso_atraso": false
   },
-  "vix": {
+  "fed_funds": {
+   "fallas": 1,
+   "aviso_falla": false,
+   "aviso_atraso": false
+  },
+  "tpm": {
    "fallas": 0,
+   "aviso_falla": false,
+   "aviso_atraso": false
+  },
+  "usdclp": {
+   "fallas": 0,
+   "aviso_falla": false,
+   "aviso_atraso": false
+  },
+  "vix": {
+   "fallas": 1,
    "aviso_falla": false,
    "aviso_atraso": false
   }
  },
  "avisos_pendientes": [],
  "estado": "CARO",
- "fecha": "2026-10-28",
- "compuesto": -0.5493259008302801,
+ "fecha": "2026-10-30",
+ "compuesto": -0.5425807962390623,
  "senales": {
   "valor_justo": -1.0,
-  "valoracion": -0.913,
-  "cobre": -0.421,
-  "dxy": 0.088,
+  "valoracion": -0.984,
+  "cobre": -0.35,
+  "dxy": 0.27,
   "tasas": 0.16,
-  "riesgo": 0.173
+  "riesgo": 0.13
  }
 }
