@@ -15,12 +15,12 @@
    "aviso_atraso": false
   },
   "dxy": {
-   "fallas": 1,
+   "fallas": 2,
    "aviso_falla": false,
    "aviso_atraso": false
   },
   "fed_funds": {
-   "fallas": 1,
+   "fallas": 2,
    "aviso_falla": false,
    "aviso_atraso": false
   },
@@ -35,7 +35,7 @@
    "aviso_atraso": false
   },
   "vix": {
-   "fallas": 1,
+   "fallas": 2,
    "aviso_falla": false,
    "aviso_atraso": false
   }

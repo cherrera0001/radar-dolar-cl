@@ -1,23 +1,24 @@
-💵 Radar Dólar Chile · datos al 2026-10-22
-Dólar observado: $986,58
+💵 Radar Dólar Chile · datos al 2026-10-30
+Dólar observado: $992,66
 
-🔴 CARO · puntaje −0,60 (umbral ±0,25) · 4 de 6 señales de acuerdo
+🔴 CARO · puntaje −0,54 (umbral ±0,25) · 3 de 6 señales de acuerdo
 El dólar está caro frente a lo que lo mueve (cobre, dólar global, tasas).
 
 Señales (+ barato / − caro):
- ▼ −1,00 Valor justo (cobre + dólar global): dólar +7,2% caro vs su valor justo de $920,25
- ▼ −0,99 Posición en el último año: percentil 100 de los últimos 12 meses (0 = mínimo, 100 = máximo)
- ▼ −0,42 Tendencia del cobre (3 meses): cobre +6,3% en 3 meses
- • +0,08 Tendencia del dólar global (3 meses): dólar global +0,4% en 3 meses
+ ▼ −1,00 Valor justo (cobre + dólar global): dólar +7,5% caro vs su valor justo de $923,42
+ ▼ −0,98 Posición en el último año: percentil 99 de los últimos 12 meses (0 = mínimo, 100 = máximo)
+ ▼ −0,35 Tendencia del cobre (3 meses): cobre +5,3% en 3 meses
+ ▲ +0,27 Tendencia del dólar global (3 meses): dólar global +1,4% en 3 meses
  ▲ +0,16 Diferencial de tasas Chile - EE.UU. (6 meses): TPM − Fed = 0,62 pts (−0,24 en 6 meses)
- ▼ −0,15 Aversión al riesgo (VIX): VIX sobre su media anual (0,3 desv.)
+ ▲ +0,13 Aversión al riesgo (VIX): VIX bajo su media anual (-0,3 desv.)
 
 📊 Historia 2012-11 a 2026-09 (167 meses): timing dentro del mes vs DCA −0,12%.
-🧪 Fuera de muestra (2020 en adelante) vs DCA: timing v0.1 −0,13% · acumular si caro −0,04%
+🧪 Fuera de muestra (2020 en adelante) vs DCA: timing v0.1 −0,12% · acumular si caro −0,08%
 
-⚠️ no se pudo leer https://mindicador.cl/api/dolar/2026: The read operation timed out
-⚠️ no se pudo leer https://mindicador.cl/api/libra_cobre/2026: The read operation timed out
-⚠️ no se pudo leer https://mindicador.cl/api/tpm/2026: The read operation timed out
+⚠️ no se pudo leer https://fred.stlouisfed.org/graph/fredgraph.csv: The read operation timed out
+⚠️ no se pudo leer https://fred.stlouisfed.org/graph/fredgraph.csv: The read operation timed out
+⚠️ no se pudo leer https://fred.stlouisfed.org/graph/fredgraph.csv: The read operation timed out
+⚠️ conciliación BCCh no disponible: faltan BCCH_USER / BCCH_PASS
 
 Contexto: el semáforo describe el precio. Fuera de muestra, no ha superado a comprar una cuota fija cada mes (DCA). Detalle: https://github.com/cherrera0001/radar-dolar-cl/blob/main/docs/INVESTIGACION.md
 Fuentes: mindicador.cl (dólar observado, cobre, TPM) y FRED (índice amplio del dólar DTWEXBGS, Fed funds, VIX). Herramienta personal; no es asesoría financiera.
