@@ -1,6 +1,6 @@
 {
  "ultima_actualizacion": {
-  "fecha": "2026-11-02",
+  "fecha": "2026-11-04",
   "errores": [
    "no se pudo leer https://fred.stlouisfed.org/graph/fredgraph.csv: The read operation timed out",
    "no se pudo leer https://fred.stlouisfed.org/graph/fredgraph.csv: The read operation timed out",
@@ -15,13 +15,13 @@
    "aviso_atraso": false
   },
   "dxy": {
-   "fallas": 2,
-   "aviso_falla": false,
+   "fallas": 3,
+   "aviso_falla": true,
    "aviso_atraso": false
   },
   "fed_funds": {
-   "fallas": 2,
-   "aviso_falla": false,
+   "fallas": 3,
+   "aviso_falla": true,
    "aviso_atraso": false
   },
   "tpm": {
@@ -35,21 +35,21 @@
    "aviso_atraso": false
   },
   "vix": {
-   "fallas": 2,
-   "aviso_falla": false,
+   "fallas": 3,
+   "aviso_falla": true,
    "aviso_atraso": false
   }
  },
  "avisos_pendientes": [],
  "estado": "CARO",
- "fecha": "2026-11-02",
- "compuesto": -0.5004642720594392,
+ "fecha": "2026-11-03",
+ "compuesto": -0.4837215048290635,
  "senales": {
   "valor_justo": -1.0,
-  "valoracion": -0.913,
-  "cobre": -0.19,
-  "dxy": 0.272,
+  "valoracion": -0.873,
+  "cobre": -0.156,
+  "dxy": 0.288,
   "tasas": 0.16,
-  "riesgo": 0.13
+  "riesgo": 0.131
  }
 }
