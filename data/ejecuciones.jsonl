@@ -66,3 +66,5 @@
 {"ts": "2026-11-04T19:16:02+00:00", "comando": "alerta", "codigo": 0, "duracion_s": 0.93, "commit": "7aac453"}
 {"ts": "2026-11-04T19:16:03+00:00", "comando": "accion", "codigo": 0, "duracion_s": 0.34, "commit": "7aac453"}
 {"ts": "2026-11-04T19:16:04+00:00", "comando": "caida", "codigo": 0, "duracion_s": 0.0, "commit": "7aac453"}
+{"ts": "2026-11-04T21:00:34+00:00", "comando": "vigia", "codigo": 0, "duracion_s": 0.0, "commit": "84d9eb0"}
+{"ts": "2026-11-04T21:00:34+00:00", "comando": "caida", "codigo": 0, "duracion_s": 0.0, "commit": "84d9eb0"}
