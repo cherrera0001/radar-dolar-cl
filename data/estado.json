@@ -42,13 +42,12 @@
  },
  "avisos_pendientes": [],
  "estado": "CARO",
- "fecha": "2026-11-05",
- "compuesto": -0.41742280245161256,
+ "fecha": "2026-11-06",
+ "compuesto": -0.5466191559151142,
  "senales": {
-  "valor_justo": -0.757,
-  "valoracion": -0.786,
-  "cobre": 0.031,
-  "dxy": 0.303,
-  "riesgo": 0.13
+  "valor_justo": -0.952,
+  "valoracion": -0.833,
+  "cobre": 0.124,
+  "dxy": 0.379
  }
 }
