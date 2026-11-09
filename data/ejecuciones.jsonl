@@ -107,7 +107,5 @@
 {"ts": "2026-11-09T12:22:47+00:00", "comando": "caida", "codigo": 0, "duracion_s": 0.0, "commit": "d3340dd"}
 {"ts": "2026-11-09T12:23:09+00:00", "comando": "bot", "codigo": 0, "duracion_s": 19804.54, "commit": "8f0a45c", "atendidos": 0}
 {"ts": "2026-11-09T17:53:14+00:00", "comando": "caida", "codigo": 0, "duracion_s": 0.0, "commit": "8f0a45c"}
-{"ts": "2026-11-09T22:00:53+00:00", "comando": "alerta", "codigo": 0, "duracion_s": 0.19, "commit": "580453d"}
-{"ts": "2026-11-09T22:38:30+00:00", "comando": "actualizar", "codigo": 0, "duracion_s": 1017.24, "commit": "9618bb1", "errores": 4, "avisos": 3, "notas": 0, "cambios": 3}
-{"ts": "2026-11-09T22:55:28+00:00", "comando": "resumen", "codigo": 0, "duracion_s": 2.35, "commit": "9618bb1"}
-{"ts": "2026-11-09T22:55:31+00:00", "comando": "caida", "codigo": 0, "duracion_s": 0.0, "commit": "9618bb1"}
+{"ts": "2026-11-09T17:53:43+00:00", "comando": "bot", "codigo": 0, "duracion_s": 19805.34, "commit": "580453d", "atendidos": 0}
+{"ts": "2026-11-09T23:23:49+00:00", "comando": "caida", "codigo": 0, "duracion_s": 0.0, "commit": "580453d"}
