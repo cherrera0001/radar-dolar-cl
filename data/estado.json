@@ -1,6 +1,6 @@
 {
  "ultima_actualizacion": {
-  "fecha": "2026-11-04",
+  "fecha": "2026-11-09",
   "errores": [
    "no se pudo leer https://fred.stlouisfed.org/graph/fredgraph.csv: The read operation timed out",
    "no se pudo leer https://fred.stlouisfed.org/graph/fredgraph.csv: The read operation timed out",
@@ -15,14 +15,14 @@
    "aviso_atraso": false
   },
   "dxy": {
-   "fallas": 3,
+   "fallas": 4,
    "aviso_falla": true,
-   "aviso_atraso": false
+   "aviso_atraso": true
   },
   "fed_funds": {
-   "fallas": 3,
+   "fallas": 4,
    "aviso_falla": true,
-   "aviso_atraso": false
+   "aviso_atraso": true
   },
   "tpm": {
    "fallas": 0,
@@ -35,12 +35,16 @@
    "aviso_atraso": false
   },
   "vix": {
-   "fallas": 3,
+   "fallas": 4,
    "aviso_falla": true,
-   "aviso_atraso": false
+   "aviso_atraso": true
   }
  },
- "avisos_pendientes": [],
+ "avisos_pendientes": [
+  "🟠 dxy: datos atrasados, último dato del 2026-10-23 (17 días); máximo 14 días",
+  "🟠 fed_funds: datos atrasados, último dato del 2026-10-28 (12 días); máximo 7 días",
+  "🟠 vix: datos atrasados, último dato del 2026-10-29 (11 días); máximo 7 días"
+ ],
  "estado": "CARO",
  "fecha": "2026-11-06",
  "compuesto": -0.5466191559151142,
