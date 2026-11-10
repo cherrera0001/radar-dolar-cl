@@ -40,17 +40,13 @@
    "aviso_atraso": true
   }
  },
- "avisos_pendientes": [
-  "🟠 dxy: datos atrasados, último dato del 2026-10-23 (17 días); máximo 14 días",
-  "🟠 fed_funds: datos atrasados, último dato del 2026-10-28 (12 días); máximo 7 días",
-  "🟠 vix: datos atrasados, último dato del 2026-10-29 (11 días); máximo 7 días"
- ],
+ "avisos_pendientes": [],
  "estado": "CARO",
  "fecha": "2026-11-06",
- "compuesto": -0.5466191559151142,
+ "compuesto": -0.5743166869458791,
  "senales": {
-  "valor_justo": -0.952,
-  "valoracion": -0.833,
+  "valor_justo": -0.999,
+  "valoracion": -0.865,
   "cobre": 0.124,
   "dxy": 0.379
  }
