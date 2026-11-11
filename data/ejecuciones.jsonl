@@ -121,3 +121,5 @@
 {"ts": "2026-11-11T02:56:52+00:00", "comando": "caida", "codigo": 0, "duracion_s": 0.0, "commit": "eacc8ca"}
 {"ts": "2026-11-11T02:57:22+00:00", "comando": "bot", "codigo": 0, "duracion_s": 19814.15, "commit": "481e011", "atendidos": 0}
 {"ts": "2026-11-11T08:27:37+00:00", "comando": "caida", "codigo": 0, "duracion_s": 0.0, "commit": "481e011"}
+{"ts": "2026-11-11T08:28:05+00:00", "comando": "bot", "codigo": 0, "duracion_s": 19800.64, "commit": "5434d85", "atendidos": 0}
+{"ts": "2026-11-11T13:58:06+00:00", "comando": "caida", "codigo": 0, "duracion_s": 0.0, "commit": "5434d85"}
