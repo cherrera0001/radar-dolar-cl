@@ -187,3 +187,5 @@
 {"ts": "2026-11-18T17:43:40+00:00", "comando": "caida", "codigo": 2, "duracion_s": 0.15, "commit": "c947f51", "error": "sendMessage: sin respuesta válida de Telegram (URLError)"}
 {"ts": "2026-11-18T17:48:09+00:00", "comando": "bot", "codigo": 2, "duracion_s": 13679.55, "commit": "8ed2df1", "error": "getUpdates falló 5 veces seguidas: getUpdates HTTP 502: {\"ok\":false,\"error_code\":502,\"description\":\"Bad Gateway\"}"}
 {"ts": "2026-11-18T21:36:09+00:00", "comando": "caida", "codigo": 2, "duracion_s": 15.76, "commit": "8ed2df1", "error": "sendMessage HTTP 502: {\"ok\":false,\"error_code\":502,\"description\":\"Bad Gateway\"}"}
+{"ts": "2026-11-18T21:40:50+00:00", "comando": "bot", "codigo": 2, "duracion_s": 651.44, "commit": "963f9a5", "error": "getUpdates falló 5 veces seguidas: getUpdates: sin respuesta válida de Telegram (TimeoutError)"}
+{"ts": "2026-11-18T21:51:42+00:00", "comando": "caida", "codigo": 2, "duracion_s": 30.25, "commit": "963f9a5", "error": "sendMessage: sin respuesta válida de Telegram (TimeoutError)"}
