@@ -175,6 +175,5 @@
 {"ts": "2026-11-17T13:14:56+00:00", "comando": "caida", "codigo": 0, "duracion_s": 0.0, "commit": "4843380"}
 {"ts": "2026-11-17T13:15:26+00:00", "comando": "bot", "codigo": 0, "duracion_s": 19819.11, "commit": "f81773d", "atendidos": 0}
 {"ts": "2026-11-17T18:45:46+00:00", "comando": "caida", "codigo": 0, "duracion_s": 0.0, "commit": "f81773d"}
-{"ts": "2026-11-17T20:28:20+00:00", "comando": "alerta", "codigo": 0, "duracion_s": 0.12, "commit": "c7c8d9c"}
-{"ts": "2026-11-17T22:44:43+00:00", "comando": "vigia", "codigo": 0, "duracion_s": 0.68, "commit": "e74e713"}
-{"ts": "2026-11-17T22:44:44+00:00", "comando": "caida", "codigo": 0, "duracion_s": 0.0, "commit": "e74e713"}
+{"ts": "2026-11-17T18:46:13+00:00", "comando": "bot", "codigo": 0, "duracion_s": 19817.1, "commit": "c7c8d9c", "atendidos": 0}
+{"ts": "2026-11-18T00:16:30+00:00", "comando": "caida", "codigo": 0, "duracion_s": 0.0, "commit": "c7c8d9c"}
