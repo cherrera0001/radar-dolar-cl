@@ -183,3 +183,5 @@
 {"ts": "2026-11-18T11:17:53+00:00", "comando": "caida", "codigo": 0, "duracion_s": 0.0, "commit": "3d6cea6"}
 {"ts": "2026-11-18T11:18:21+00:00", "comando": "bot", "codigo": 0, "duracion_s": 19818.12, "commit": "8ea933e", "atendidos": 0}
 {"ts": "2026-11-18T16:48:39+00:00", "comando": "caida", "codigo": 0, "duracion_s": 0.0, "commit": "8ea933e"}
+{"ts": "2026-11-18T16:49:09+00:00", "comando": "bot", "codigo": 99, "duracion_s": 3271.18, "commit": "c947f51", "error": "RemoteDisconnected: Remote end closed connection without response"}
+{"ts": "2026-11-18T17:43:40+00:00", "comando": "caida", "codigo": 2, "duracion_s": 0.15, "commit": "c947f51", "error": "sendMessage: sin respuesta válida de Telegram (URLError)"}
