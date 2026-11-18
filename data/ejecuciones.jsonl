@@ -185,4 +185,5 @@
 {"ts": "2026-11-18T16:48:39+00:00", "comando": "caida", "codigo": 0, "duracion_s": 0.0, "commit": "8ea933e"}
 {"ts": "2026-11-18T16:49:09+00:00", "comando": "bot", "codigo": 99, "duracion_s": 3271.18, "commit": "c947f51", "error": "RemoteDisconnected: Remote end closed connection without response"}
 {"ts": "2026-11-18T17:43:40+00:00", "comando": "caida", "codigo": 2, "duracion_s": 0.15, "commit": "c947f51", "error": "sendMessage: sin respuesta válida de Telegram (URLError)"}
-{"ts": "2026-11-18T20:00:32+00:00", "comando": "alerta", "codigo": 0, "duracion_s": 0.12, "commit": "8ed2df1"}
+{"ts": "2026-11-18T17:48:09+00:00", "comando": "bot", "codigo": 2, "duracion_s": 13679.55, "commit": "8ed2df1", "error": "getUpdates falló 5 veces seguidas: getUpdates HTTP 502: {\"ok\":false,\"error_code\":502,\"description\":\"Bad Gateway\"}"}
+{"ts": "2026-11-18T21:36:09+00:00", "comando": "caida", "codigo": 2, "duracion_s": 15.76, "commit": "8ed2df1", "error": "sendMessage HTTP 502: {\"ok\":false,\"error_code\":502,\"description\":\"Bad Gateway\"}"}
