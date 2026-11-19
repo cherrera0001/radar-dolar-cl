@@ -191,5 +191,5 @@
 {"ts": "2026-11-18T21:51:42+00:00", "comando": "caida", "codigo": 2, "duracion_s": 30.25, "commit": "963f9a5", "error": "sendMessage: sin respuesta válida de Telegram (TimeoutError)"}
 {"ts": "2026-11-18T21:56:42+00:00", "comando": "bot", "codigo": 2, "duracion_s": 650.99, "commit": "827a0f7", "error": "getUpdates falló 5 veces seguidas: getUpdates: sin respuesta válida de Telegram (TimeoutError)"}
 {"ts": "2026-11-18T22:07:33+00:00", "comando": "caida", "codigo": 2, "duracion_s": 30.2, "commit": "827a0f7", "error": "sendMessage: sin respuesta válida de Telegram (TimeoutError)"}
-{"ts": "2026-11-18T22:26:27+00:00", "comando": "vigia", "codigo": 0, "duracion_s": 0.39, "commit": "5ce649c"}
-{"ts": "2026-11-18T22:26:28+00:00", "comando": "caida", "codigo": 0, "duracion_s": 0.0, "commit": "5ce649c"}
+{"ts": "2026-11-18T22:12:33+00:00", "comando": "bot", "codigo": 0, "duracion_s": 19815.67, "commit": "5ce649c", "atendidos": 0}
+{"ts": "2026-11-19T03:42:49+00:00", "comando": "caida", "codigo": 0, "duracion_s": 0.0, "commit": "5ce649c"}
