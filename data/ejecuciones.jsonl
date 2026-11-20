@@ -201,3 +201,5 @@
 {"ts": "2026-11-19T20:14:58+00:00", "comando": "caida", "codigo": 0, "duracion_s": 0.0, "commit": "16bf1fd"}
 {"ts": "2026-11-19T20:15:23+00:00", "comando": "bot", "codigo": 0, "duracion_s": 19817.31, "commit": "3680666", "atendidos": 0}
 {"ts": "2026-11-20T01:45:40+00:00", "comando": "caida", "codigo": 0, "duracion_s": 0.0, "commit": "3680666"}
+{"ts": "2026-11-20T01:46:18+00:00", "comando": "bot", "codigo": 0, "duracion_s": 19824.3, "commit": "c3d925b", "atendidos": 0}
+{"ts": "2026-11-20T07:16:43+00:00", "comando": "caida", "codigo": 0, "duracion_s": 0.0, "commit": "c3d925b"}
