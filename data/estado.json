@@ -1,6 +1,6 @@
 {
  "ultima_actualizacion": {
-  "fecha": "2026-11-20",
+  "fecha": "2026-11-23",
   "errores": [
    "no se pudo leer https://fred.stlouisfed.org/graph/fredgraph.csv: The read operation timed out",
    "no se pudo leer https://fred.stlouisfed.org/graph/fredgraph.csv: The read operation timed out",
@@ -15,12 +15,12 @@
    "aviso_atraso": false
   },
   "dxy": {
-   "fallas": 6,
+   "fallas": 7,
    "aviso_falla": true,
    "aviso_atraso": true
   },
   "fed_funds": {
-   "fallas": 6,
+   "fallas": 7,
    "aviso_falla": true,
    "aviso_atraso": true
   },
@@ -35,7 +35,7 @@
    "aviso_atraso": false
   },
   "vix": {
-   "fallas": 6,
+   "fallas": 7,
    "aviso_falla": true,
    "aviso_atraso": true
   }
