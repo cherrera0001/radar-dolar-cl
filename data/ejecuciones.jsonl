@@ -249,3 +249,4 @@
 {"ts": "2026-11-25T14:02:09+00:00", "comando": "caida", "codigo": 0, "duracion_s": 0.0, "commit": "3c96bf4"}
 {"ts": "2026-11-25T14:02:41+00:00", "comando": "bot", "codigo": 0, "duracion_s": 19820.75, "commit": "c2cdc5b", "atendidos": 0}
 {"ts": "2026-11-25T19:33:02+00:00", "comando": "caida", "codigo": 0, "duracion_s": 0.0, "commit": "c2cdc5b"}
+{"ts": "2026-11-25T21:05:48+00:00", "comando": "alerta", "codigo": 0, "duracion_s": 0.12, "commit": "3984564"}
