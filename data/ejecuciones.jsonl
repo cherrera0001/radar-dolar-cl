@@ -267,5 +267,5 @@
 {"ts": "2026-11-27T15:39:09+00:00", "comando": "caida", "codigo": 0, "duracion_s": 0.0, "commit": "b6445d2"}
 {"ts": "2026-11-27T15:39:35+00:00", "comando": "bot", "codigo": 0, "duracion_s": 19803.32, "commit": "04fd422", "atendidos": 0}
 {"ts": "2026-11-27T21:09:39+00:00", "comando": "caida", "codigo": 0, "duracion_s": 0.0, "commit": "04fd422"}
-{"ts": "2026-11-27T23:06:49+00:00", "comando": "vigia", "codigo": 0, "duracion_s": 0.64, "commit": "45f6399"}
-{"ts": "2026-11-27T23:06:50+00:00", "comando": "caida", "codigo": 0, "duracion_s": 0.0, "commit": "45f6399"}
+{"ts": "2026-11-27T21:10:07+00:00", "comando": "bot", "codigo": 0, "duracion_s": 19818.74, "commit": "45f6399", "atendidos": 0}
+{"ts": "2026-11-28T02:40:27+00:00", "comando": "caida", "codigo": 0, "duracion_s": 0.0, "commit": "45f6399"}
